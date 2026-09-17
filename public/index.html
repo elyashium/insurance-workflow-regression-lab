@@ -3,40 +3,53 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Insurance Workflow Regression Lab</title>
-    <link rel="icon" href="data:," />
+    <title>Workflow Quality & Regression Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22 font-family=%22serif%22>✳</text></svg>" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark">IWRL</span>
+        <span class="brand-mark" aria-hidden="true">&#10033;</span>
         <div>
-          <h1>Insurance Workflow Regression Lab</h1>
-          <p class="brand-sub">Replay a submission workflow. Diff two versions. See what moved.</p>
+          <h1>Workflow Quality Lab</h1>
+          <p class="brand-sub">Pipeline Regression &amp; Release Verification</p>
         </div>
       </div>
 
-      <nav class="tabs" id="nav">
+      <nav class="tabs" id="nav" aria-label="Main Navigation">
         <a href="#/compare" data-view="compare">Scorecard</a>
         <a href="#/submissions" data-view="submissions">Submissions</a>
-        <a href="#/review" data-view="review">Review queue</a>
+        <a href="#/review" data-view="review">Review Queue</a>
         <a href="#/about" data-view="about">About</a>
       </nav>
     </header>
 
     <div class="synthetic-banner" id="synthetic-banner">
-      Every packet, insured, address, threshold and price in this application is
-      <strong>synthetic and invented for demonstration</strong>. Nothing here is underwriting guidance.
+      <span class="banner-pill">Demo Environment</span>
+      <span>Synthetic test submissions &bull; Deterministic evaluation &bull; Not underwriting guidance</span>
     </div>
 
     <main id="main" aria-live="polite">
-      <div class="loading">Running the corpus&hellip;</div>
+      <div class="loading">
+        <div class="spinner"></div>
+        <span>Evaluating workflow versions&hellip;</span>
+      </div>
     </main>
 
     <footer class="footer">
-      <span>Synthetic data only &middot; latency measured &middot; cost simulated</span>
-      <span id="footer-pricing"></span>
+      <div class="footer-left">
+        <span class="footer-mark">&#10033;</span>
+        <span>Workflow Quality Lab</span>
+        <span class="footer-sep">&middot;</span>
+        <span>Field-level verification harness</span>
+      </div>
+      <div class="footer-right">
+        <span id="footer-pricing"></span>
+      </div>
     </footer>
 
     <script type="module" src="/app.js"></script>
