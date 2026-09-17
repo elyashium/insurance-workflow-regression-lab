@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-005
+
+SECTION A - APPLICANT
+Named Insured: Ironvale Manufacturing Partners
+Mailing Address: 7 Foundry Lane, Erie, PA 16505
+Business Description: Heavy steel fabrication and finishing
+Years in Business: 34
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-02-27
+Proposed Effective Date: 2026-04-15
+Proposed Expiration Date: 2027-04-15
+
+SECTION C - COVERAGE SUMMARY
+TIV (stated): $48,900,000
+Blanket Building Limit: $28,050,000
+Blanket Contents Limit: $20,000,000
+Business Interruption Limit: $7,600,000
+Deductible: $250,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: Lake Erie Risk Group (synthetic)
+Producer Contact: s.petrov@example.invalid
+Submission Channel: Email

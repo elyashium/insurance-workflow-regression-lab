@@ -1,0 +1,19 @@
+# Dependencies (there are none at runtime, but npx/tsc leave these behind)
+node_modules/
+
+# The human review log is local state, not source. It is written on first
+# review and is meant to differ between clones.
+data/store/
+
+# Editor and tooling scratch
+.claude/*
+!.claude/launch.json
+.vscode/
+.idea/
+*.tmp
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

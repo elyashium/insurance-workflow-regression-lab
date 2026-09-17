@@ -1,0 +1,10 @@
+LOSS RUN - PKT-001
+Insured: Harborline Cold Storage LLC
+Carrier of Record: Meridian Mutual (synthetic)
+Valuation Date: 2026-02-15
+Period: 5 years
+
+CLAIM | 2023-07-14 | Water Damage | Paid: $84,000 | Reserved: $0 | Status: Closed
+CLAIM | 2024-11-02 | Theft | Paid: $22,500 | Reserved: $0 | Status: Closed
+
+Total Incurred: $106,500

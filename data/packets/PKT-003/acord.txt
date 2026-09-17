@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-003
+
+SECTION A - APPLICANT
+Named Insured: Ridgeway Logistics Group
+Mailing Address: 77 Junction Parkway, Goshen, IN 46526
+Business Description: Regional freight consolidation and warehousing
+Years in Business: 12
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-02-19
+Proposed Effective Date: 2026-03-15
+Proposed Expiration Date: 2027-03-15
+
+SECTION C - COVERAGE SUMMARY
+Total Insured Value: $40,950,000
+Blanket Building Limit: $23,150,000
+Blanket Contents Limit: $14,100,000
+Business Interruption Limit: $3,700,000
+Deductible: $75,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: Lakeshore Brokerage Partners (synthetic)
+Producer Contact: m.okafor@example.invalid
+Submission Channel: Broker portal

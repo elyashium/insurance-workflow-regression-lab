@@ -1,0 +1,25 @@
+{
+  // The source is plain JavaScript with JSDoc annotations - there is no build
+  // step and nothing here is compiled. This file exists so an editor (and an
+  // optional `npm run typecheck`) can check those annotations against the code.
+  //
+  // `strict` is off deliberately. The goal is to catch a misspelled field name
+  // or a shape that drifted between a module and its caller, not to litigate
+  // every nullable in a demo.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+
+    "strict": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.js", "test/**/*.js", "public/**/*.js"]
+}

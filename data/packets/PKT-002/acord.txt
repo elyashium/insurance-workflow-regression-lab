@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-002
+
+SECTION A - APPLICANT
+Named Insured: Cedar Mill Textiles, Inc.
+Mailing Address: 288 Loom Street, Greenville, SC 29601
+Business Description: Woven textile manufacturing and finishing
+Years in Business: 41
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-03-05
+Proposed Effective Date: 2026-05-01
+Proposed Expiration Date: 2027-05-01
+
+SECTION C - COVERAGE SUMMARY
+Total Insured Value: $43,850,000
+Blanket Building Limit: $21,250,000
+Blanket Contents Limit: $18,050,000
+Business Interruption Limit: $4,550,000
+Deductible: $100,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: Piedmont Commercial Brokers (synthetic)
+Producer Contact: d.whitfield@example.invalid
+Submission Channel: Email

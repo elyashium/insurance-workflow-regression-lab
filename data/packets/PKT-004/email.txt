@@ -1,0 +1,23 @@
+From: t.brennan@example.invalid
+To: submissions@example.invalid
+Date: 2026-03-11
+Subject: Sunhollow Grocers Co-op - backdated 1/1 - please advise
+
+Hi,
+
+Sending over Sunhollow Grocers. I know this is late - the co-op board thought
+their prior broker had bound a 1/1 renewal and it turns out nothing was placed.
+They have been operating without property cover since the first of the year.
+They are asking whether a 1/1 effective date can still be honored.
+
+I am aware that is not usually how this works. Flagging it rather than quietly
+changing the date on the application, because the board needs to understand the
+gap either way.
+
+Also the loss run we received from Cascade has a row with a 2026-06-30 date on
+it which cannot be right - that is months from now. I have asked Cascade to
+re-issue. Treating it as a data error for the moment but did not want to delete
+a row from a carrier document myself.
+
+Tom Brennan
+High Desert Insurance Services

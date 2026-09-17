@@ -1,0 +1,10 @@
+LOSS RUN - PKT-003
+Insured: Ridgeway Logistics Group
+Carrier of Record: Great Basin Casualty (synthetic)
+Valuation Date: 2026-02-01
+Period: 5 years
+
+CLAIM | 2023-05-21 | Collision / Fleet | Paid: $96,000 | Reserved: $0 | Status: Closed
+CLAIM | 2025-01-09 | Wind / Hail | Paid: $312,000 | Reserved: $90,000 | Status: Open
+
+Total Incurred: $498,000

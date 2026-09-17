@@ -1,0 +1,10 @@
+SCHEDULE OF VALUES - PKT-001
+Insured: Harborline Cold Storage LLC
+Prepared: 2026-02-27
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 4120 Dockside Way | Tacoma, WA 98421 | Building: $12,400,000 | Contents: $6,800,000 | BI: $2,200,000 | Construction: Non-Combustible | Year Built: 1998
+LOC | L2 | 915 Pier 6 Road | Tacoma, WA 98421 | Building: $7,150,000 | Contents: $3,900,000 | BI: $1,400,000 | Construction: Masonry Non-Combustible | Year Built: 2004
+
+SOV Total: $33,850,000

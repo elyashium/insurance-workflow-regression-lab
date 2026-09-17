@@ -1,0 +1,14 @@
+SCHEDULE OF VALUES - PKT-002
+Insured: Cedar Mill Textiles, Inc.
+Prepared: 2026-03-03
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 288 Loom Street | Greenville, SC 29601 | Building: $9,600,000 | Contents: $11,200,000 | BI: $3,000,000 | Constr: Joisted Masonry | Year Built: 1972
+LOC | L2 | 14 Spindle Court | Greer, SC 29650 | Building: $5,400,000 | Contents: $4,100,000 | BI: $900,000 | Constr: | Year Built:
+LOC | L3 | 3301 Carding Road | Greenville, SC 29605 | Building: $6,250,000 | Contents: $2,750,000 | BI: $650,000 | Constr: Frame | Year Built: 1988
+
+SOV Total: $43,850,000
+
+Note: L2 was acquired in Q4 2025. Construction class and original build year
+are still being confirmed with the seller's records.

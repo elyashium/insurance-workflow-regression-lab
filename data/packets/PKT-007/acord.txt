@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-007
+
+SECTION A - APPLICANT
+Named Insured: Pinnacle Rail Services
+Mailing Address: 9400 Trunkline Road, Roseville, CA 95678
+Business Description: Short-line rail maintenance, yard operations, intermodal transfer
+Years in Business: 47
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-03-09
+Proposed Effective Date: 2027-09-01
+Proposed Expiration Date: 2028-09-01
+
+SECTION C - COVERAGE SUMMARY
+Total Insured Value: $128,300,000
+Blanket Building Limit: $69,200,000
+Blanket Contents Limit: $39,100,000
+Business Interruption Limit: $20,000,000
+Deductible: $500,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: Sierra Transport Risk (synthetic)
+Producer Contact: k.delacruz@example.invalid
+Submission Channel: Email

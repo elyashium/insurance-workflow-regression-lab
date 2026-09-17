@@ -1,0 +1,14 @@
+SCHEDULE OF VALUES - PKT-008
+Insured: Quarry Point Data Centers
+Prepared: 2026-03-12
+Currency: USD
+Status: FINAL (compiled from two asset registers, see note)
+
+LOC | L1 | 2900 Basalt Ridge Rd | Hillsboro, OR 97124 | Building: $41,000,000 | Contents: $28,500,000 | BI: $12,000,000 | Construction: Fire Resistive | Year Built: 2019
+LOC | L2 | 2900 Basalt Ridge Road, Suite 100 | Hillsboro, OR 97124 | Building: $41,000,000 | Contents: $28,500,000 | BI: $12,000,000 | Construction: Fire Resistive | Year Built: 2019
+LOC | L3 | 145 Quarry Point Loop | Hillsboro, OR 97123 | Bldg Val: 16700000 | Cont: $9,900,000 | BI: $4,200,000 | Constr: | Yr Blt:
+
+SOV Total: $112,300,000
+
+Note: rows were compiled from the facilities register and the finance fixed
+asset register. Not fully reconciled at time of submission.

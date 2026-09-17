@@ -1,0 +1,22 @@
+From: j.nakamura@example.invalid
+To: submissions@example.invalid
+Date: 2026-02-04
+Subject: RE: Blue Terrace Hospitality Group - 3/1 effective - ENDORSEMENT / REVISED VALUE
+
+ENDORSEMENT REQUEST - received after FINAL schedule of values
+
+Team, apologies for the moving target. The insured completed the east tower
+renovation at the Lakeshore property ahead of schedule and the appraiser
+re-issued on 2026-02-02.
+
+Please amend the schedule as follows:
+
+ENDORSE | L1 | 500 Lakeshore Promenade | Building: $14,200,000 -> $28,200,000 | Effective on bind
+Reason: East tower renovation completed and placed in service; adjacent parcel
+improvements now included in the building value.
+
+All other values at both locations are unchanged. The application header total
+of $38,000,000 is now stale - it does not reflect this amendment.
+
+Julia Nakamura
+Four Lakes Insurance Advisors

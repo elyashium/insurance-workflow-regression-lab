@@ -1,0 +1,175 @@
+{
+  "_about": {
+    "purpose": "Hand-labeled ground truth for the synthetic packet set. Extraction accuracy in the scorecard is scored against this file.",
+    "allDataIsSynthetic": true,
+    "conventions": {
+      "computedTiv": "Sum of building + contents + BI across the GROUND TRUTH location list, which is deduplicated and has late endorsements applied.",
+      "statedTiv": "The total insured value as literally written in the packet, even when that figure is wrong or stale. A mismatch between statedTiv and computedTiv is itself a finding, not a labeling error.",
+      "duplicateResolution": "First occurrence wins. Where a duplicated location carries differing values, the earlier SOV row is treated as authoritative.",
+      "nullMeansAbsent": "A null field means the value is genuinely absent from the packet. An extractor that reports null for these is CORRECT; one that invents a value is wrong.",
+      "lossRunTotals": "As stated in the loss run document, including rows that are themselves suspect. Suspect rows are surfaced as conflicts, not silently dropped from the total."
+    }
+  },
+
+  "PKT-001": {
+    "packetId": "PKT-001",
+    "label": "Harborline Cold Storage LLC",
+    "edgeCases": [],
+    "notes": "Clean baseline. No planted defect. Standard field labels throughout. Both workflow versions should extract fully, raise no guideline flags, and not abstain.",
+    "fields": {
+      "insuredName": "Harborline Cold Storage LLC",
+      "receivedDate": "2026-03-02",
+      "requestedEffectiveDate": "2026-04-01",
+      "statedTiv": 33850000,
+      "computedTiv": 33850000,
+      "lossRunTotalIncurred": 106500,
+      "lossCount": 2
+    },
+    "locations": [
+      { "address": "4120 Dockside Way", "city": "Tacoma", "state": "WA", "zip": "98421", "buildingValue": 12400000, "contentsValue": 6800000, "biValue": 2200000, "constructionType": "Non-Combustible", "yearBuilt": 1998 },
+      { "address": "915 Pier 6 Road", "city": "Tacoma", "state": "WA", "zip": "98421", "buildingValue": 7150000, "contentsValue": 3900000, "biValue": 1400000, "constructionType": "Masonry Non-Combustible", "yearBuilt": 2004 }
+    ]
+  },
+
+  "PKT-002": {
+    "packetId": "PKT-002",
+    "label": "Cedar Mill Textiles, Inc.",
+    "edgeCases": ["MISSING_FIELD"],
+    "notes": "L2 (14 Spindle Court) is genuinely missing construction type and year built - the broker declined to guess. Correct extraction reports null for both. SOV uses the label 'Constr:' rather than 'Construction:', which the strict v1 extractor does not recognise. TIV of $43.85M sits between the two versions' appetite thresholds ($40M in v1, $50M in v2), so this packet demonstrates a pure threshold change in the diff.",
+    "fields": {
+      "insuredName": "Cedar Mill Textiles, Inc.",
+      "receivedDate": "2026-03-05",
+      "requestedEffectiveDate": "2026-05-01",
+      "statedTiv": 43850000,
+      "computedTiv": 43850000,
+      "lossRunTotalIncurred": 553000,
+      "lossCount": 3
+    },
+    "locations": [
+      { "address": "288 Loom Street", "city": "Greenville", "state": "SC", "zip": "29601", "buildingValue": 9600000, "contentsValue": 11200000, "biValue": 3000000, "constructionType": "Joisted Masonry", "yearBuilt": 1972 },
+      { "address": "14 Spindle Court", "city": "Greer", "state": "SC", "zip": "29650", "buildingValue": 5400000, "contentsValue": 4100000, "biValue": 900000, "constructionType": null, "yearBuilt": null },
+      { "address": "3301 Carding Road", "city": "Greenville", "state": "SC", "zip": "29605", "buildingValue": 6250000, "contentsValue": 2750000, "biValue": 650000, "constructionType": "Frame", "yearBuilt": 1988 }
+    ]
+  },
+
+  "PKT-003": {
+    "packetId": "PKT-003",
+    "label": "Ridgeway Logistics Group",
+    "edgeCases": ["DUPLICATE_LOCATION"],
+    "notes": "L1 '1420 Kestrel Ave' and L3 '1420 Kestrel Avenue' are the same building entered twice under two asset IDs, with contents differing by $50,000. Exact string matching misses this; normalised matching catches it. As-listed TIV is $55,300,000; deduplicated TIV is $40,950,000, which is what the broker stated. Under v2's $50M threshold, deduplicating FLIPS the appetite outcome - that disagreement is what drives the abstention.",
+    "fields": {
+      "insuredName": "Ridgeway Logistics Group",
+      "receivedDate": "2026-02-19",
+      "requestedEffectiveDate": "2026-03-15",
+      "statedTiv": 40950000,
+      "computedTiv": 40950000,
+      "lossRunTotalIncurred": 498000,
+      "lossCount": 2
+    },
+    "locations": [
+      { "address": "1420 Kestrel Ave", "city": "Elkhart", "state": "IN", "zip": "46514", "buildingValue": 8900000, "contentsValue": 4300000, "biValue": 1100000, "constructionType": "Non-Combustible", "yearBuilt": 2011 },
+      { "address": "77 Junction Parkway", "city": "Goshen", "state": "IN", "zip": "46526", "buildingValue": 14250000, "contentsValue": 9800000, "biValue": 2600000, "constructionType": "Non-Combustible", "yearBuilt": 2016 }
+    ]
+  },
+
+  "PKT-004": {
+    "packetId": "PKT-004",
+    "label": "Sunhollow Grocers Co-op",
+    "edgeCases": ["INCONSISTENT_DATES"],
+    "notes": "Two separate date problems. (1) Requested effective date of 2026-01-01 is in the past relative to the 2026-03-11 received date - the account has been running uninsured. (2) A loss run row is dated 2026-06-30, months after the submission was received. The loss run total is labeled as stated in the document ($179,000, including the suspect row); the suspect row is surfaced as a conflict rather than silently dropped. The SOV uses 'Yr Built:' rather than 'Year Built:', an alias the strict v1 extractor misses, so v1 reports both year-built values as absent and raises a FALSE data-completeness flag on data that is plainly present. Year built is not a required field, so this degrades v1's accuracy without causing it to abstain - a wrong answer rather than a safe one.",
+    "fields": {
+      "insuredName": "Sunhollow Grocers Co-op",
+      "receivedDate": "2026-03-11",
+      "requestedEffectiveDate": "2026-01-01",
+      "statedTiv": 22650000,
+      "computedTiv": 22650000,
+      "lossRunTotalIncurred": 179000,
+      "lossCount": 3
+    },
+    "locations": [
+      { "address": "620 Market Row", "city": "Boise", "state": "ID", "zip": "83702", "buildingValue": 4800000, "contentsValue": 3600000, "biValue": 1250000, "constructionType": "Masonry Non-Combustible", "yearBuilt": 1991 },
+      { "address": "1155 Orchard Bend", "city": "Meridian", "state": "ID", "zip": "83642", "buildingValue": 6100000, "contentsValue": 5200000, "biValue": 1700000, "constructionType": "Non-Combustible", "yearBuilt": 2007 }
+    ]
+  },
+
+  "PKT-005": {
+    "packetId": "PKT-005",
+    "label": "Ironvale Manufacturing Partners",
+    "edgeCases": ["CONFLICTING_LIMITS"],
+    "notes": "The application header states a TIV of $48,900,000, carried over from the prior year statement of values. The current schedule foots to $55,650,000. The $6,750,000 gap is real and unreconciled in the packet, so ground truth records both figures. The header uses the label 'TIV (stated):' rather than 'Total Insured Value:' - v1 does not recognise it, which is precisely why v1 never detects the mismatch. Both versions flag the appetite threshold on the computed figure.",
+    "fields": {
+      "insuredName": "Ironvale Manufacturing Partners",
+      "receivedDate": "2026-02-27",
+      "requestedEffectiveDate": "2026-04-15",
+      "statedTiv": 48900000,
+      "computedTiv": 55650000,
+      "lossRunTotalIncurred": 610000,
+      "lossCount": 2
+    },
+    "locations": [
+      { "address": "7 Foundry Lane", "city": "Erie", "state": "PA", "zip": "16505", "buildingValue": 18750000, "contentsValue": 12400000, "biValue": 5500000, "constructionType": "Fire Resistive", "yearBuilt": 1983 },
+      { "address": "2240 Slag Road", "city": "Erie", "state": "PA", "zip": "16510", "buildingValue": 9300000, "contentsValue": 7600000, "biValue": 2100000, "constructionType": "Non-Combustible", "yearBuilt": 1996 }
+    ]
+  },
+
+  "PKT-006": {
+    "packetId": "PKT-006",
+    "label": "Blue Terrace Hospitality Group",
+    "edgeCases": ["LATE_ENDORSEMENT"],
+    "notes": "The sharpest packet in the set. The SOV was marked FINAL and submitted 2026-01-22 at $38,000,000. An endorsement email dated 2026-02-04 raises the Lakeshore building value from $14,200,000 to $28,200,000, taking true TIV to $52,000,000. Ground truth applies the endorsement. Consequence: v1, which never reads the endorsement document, sees $38M, clears its own $40M threshold and returns a confident in-appetite answer with zero flags. v2 applies the endorsement, crosses its $50M threshold, and abstains. The application header total of $38,000,000 is stale by design, so statedTiv and computedTiv legitimately differ.",
+    "fields": {
+      "insuredName": "Blue Terrace Hospitality Group",
+      "receivedDate": "2026-01-22",
+      "requestedEffectiveDate": "2026-03-01",
+      "statedTiv": 38000000,
+      "computedTiv": 52000000,
+      "lossRunTotalIncurred": 224000,
+      "lossCount": 2
+    },
+    "locations": [
+      { "address": "500 Lakeshore Promenade", "city": "Madison", "state": "WI", "zip": "53703", "buildingValue": 28200000, "contentsValue": 6900000, "biValue": 4800000, "constructionType": "Fire Resistive", "yearBuilt": 2009 },
+      { "address": "88 Terrace Court", "city": "Madison", "state": "WI", "zip": "53711", "buildingValue": 8450000, "contentsValue": 2300000, "biValue": 1350000, "constructionType": "Joisted Masonry", "yearBuilt": 1994 }
+    ]
+  },
+
+  "PKT-007": {
+    "packetId": "PKT-007",
+    "label": "Pinnacle Rail Services",
+    "edgeCases": ["INCONSISTENT_DATES", "HIGH_TIV", "HEAVY_LOSS_HISTORY"],
+    "notes": "Decisively out of appetite on the data as given. For a version that reads the packet correctly this is the contrast case to the abstention packets: the answer is a confident decline, not a referral, because nothing about it is ambiguous. Requested effective date of 2027-09-01 is roughly 18 months past the 2026-03-09 received date. Loss ratio is 5,100,000 / 128,300,000 = 3.97%, well over the 1.5% threshold. One value is written as '$3.1M' shorthand, which the strict v1 extractor cannot parse - so v1's schedule foots $3,100,000 short of the stated total, and that unexplained gap correctly sends v1 to a human. v1 abstains here not because the packet is ambiguous but because v1 mis-read it, which is the distinction the trace is meant to make visible.",
+    "fields": {
+      "insuredName": "Pinnacle Rail Services",
+      "receivedDate": "2026-03-09",
+      "requestedEffectiveDate": "2027-09-01",
+      "statedTiv": 128300000,
+      "computedTiv": 128300000,
+      "lossRunTotalIncurred": 5100000,
+      "lossCount": 3
+    },
+    "locations": [
+      { "address": "9400 Trunkline Road", "city": "Roseville", "state": "CA", "zip": "95678", "buildingValue": 34500000, "contentsValue": 18200000, "biValue": 9600000, "constructionType": "Non-Combustible", "yearBuilt": 1979 },
+      { "address": "12 Yard Master Drive", "city": "Stockton", "state": "CA", "zip": "95206", "buildingValue": 22800000, "contentsValue": 14500000, "biValue": 7300000, "constructionType": "Non-Combustible", "yearBuilt": 1985 },
+      { "address": "660 Siding Access Way", "city": "Fresno", "state": "CA", "zip": "93725", "buildingValue": 11900000, "contentsValue": 6400000, "biValue": 3100000, "constructionType": "Frame", "yearBuilt": 1968 }
+    ]
+  },
+
+  "PKT-008": {
+    "packetId": "PKT-008",
+    "label": "Quarry Point Data Centers",
+    "edgeCases": ["DUPLICATE_LOCATION", "MISSING_FIELD", "HIGH_TIV"],
+    "notes": "Deliberately the messiest packet, and the one case where v2 does BETTER than v1 on abstention rather than worse. 'Basalt Ridge Rd' and 'Basalt Ridge Road, Suite 100' are one building double-counted across two asset registers. L3 is missing construction type and year built, and uses 'Bldg Val:' / 'Cont:' / 'Yr Blt:' labels with one unformatted number. The application header uses 'Insured Name (DBA):'. v1 parses too little to be confident and abstains on low confidence; v2 resolves the aliases and the duplicate, lands on the stated $112,300,000, and proceeds with flags. Deduplication does not flip the appetite outcome here - both $193.8M as-listed and $112.3M deduplicated are over threshold - so there is no rule disagreement to abstain on.",
+    "fields": {
+      "insuredName": "Quarry Point Data Centers",
+      "receivedDate": "2026-03-14",
+      "requestedEffectiveDate": "2026-05-01",
+      "statedTiv": 112300000,
+      "computedTiv": 112300000,
+      "lossRunTotalIncurred": 770000,
+      "lossCount": 2
+    },
+    "locations": [
+      { "address": "2900 Basalt Ridge Rd", "city": "Hillsboro", "state": "OR", "zip": "97124", "buildingValue": 41000000, "contentsValue": 28500000, "biValue": 12000000, "constructionType": "Fire Resistive", "yearBuilt": 2019 },
+      { "address": "145 Quarry Point Loop", "city": "Hillsboro", "state": "OR", "zip": "97123", "buildingValue": 16700000, "contentsValue": 9900000, "biValue": 4200000, "constructionType": null, "yearBuilt": null }
+    ]
+  }
+}

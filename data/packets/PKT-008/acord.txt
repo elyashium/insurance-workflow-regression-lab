@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-008
+
+SECTION A - APPLICANT
+Insured Name (DBA): Quarry Point Data Centers
+Mailing Address: 2900 Basalt Ridge Rd, Hillsboro, OR 97124
+Business Description: Colocation data centre operations, two campuses
+Years in Business: 7
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-03-14
+Proposed Effective Date: 2026-05-01
+Proposed Expiration Date: 2027-05-01
+
+SECTION C - COVERAGE SUMMARY
+Total Insured Value: $112,300,000
+Blanket Building Limit: $57,700,000
+Blanket Contents Limit: $38,400,000
+Business Interruption Limit: $16,200,000
+Deductible: $250,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: Willamette Specialty Brokers (synthetic)
+Producer Contact: a.fontaine@example.invalid
+Submission Channel: Email

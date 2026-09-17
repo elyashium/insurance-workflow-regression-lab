@@ -1,0 +1,19 @@
+{
+  "name": "insurance-workflow-regression-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A synthetic lab for replaying insurance submission workflows and diffing two versions on accuracy, abstention, latency and cost.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/",
+    "typecheck": "npx -y -p typescript@5 -p @types/node@22 tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "license": "MIT"
+}

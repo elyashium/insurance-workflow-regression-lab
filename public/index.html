@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Insurance Workflow Regression Lab</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">IWRL</span>
+        <div>
+          <h1>Insurance Workflow Regression Lab</h1>
+          <p class="brand-sub">Replay a submission workflow. Diff two versions. See what moved.</p>
+        </div>
+      </div>
+
+      <nav class="tabs" id="nav">
+        <a href="#/compare" data-view="compare">Scorecard</a>
+        <a href="#/submissions" data-view="submissions">Submissions</a>
+        <a href="#/review" data-view="review">Review queue</a>
+        <a href="#/about" data-view="about">About</a>
+      </nav>
+    </header>
+
+    <div class="synthetic-banner" id="synthetic-banner">
+      Every packet, insured, address, threshold and price in this application is
+      <strong>synthetic and invented for demonstration</strong>. Nothing here is underwriting guidance.
+    </div>
+
+    <main id="main" aria-live="polite">
+      <div class="loading">Running the corpus&hellip;</div>
+    </main>
+
+    <footer class="footer">
+      <span>Synthetic data only &middot; latency measured &middot; cost simulated</span>
+      <span id="footer-pricing"></span>
+    </footer>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

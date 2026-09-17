@@ -1,0 +1,11 @@
+SCHEDULE OF VALUES - PKT-007
+Insured: Pinnacle Rail Services
+Prepared: 2026-03-04
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 9400 Trunkline Road | Roseville, CA 95678 | Building: $34,500,000 | Contents: $18,200,000 | BI: $9,600,000 | Construction: Non-Combustible | Year Built: 1979
+LOC | L2 | 12 Yard Master Drive | Stockton, CA 95206 | Building: $22,800,000 | Contents: $14,500,000 | BI: $7,300,000 | Construction: Non-Combustible | Year Built: 1985
+LOC | L3 | 660 Siding Access Way | Fresno, CA 93725 | Building: $11,900,000 | Contents: $6,400,000 | BI: $3.1M | Construction: Frame | Year Built: 1968
+
+SOV Total: $128,300,000

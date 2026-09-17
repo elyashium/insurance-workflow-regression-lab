@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-004
+
+SECTION A - APPLICANT
+Applicant: Sunhollow Grocers Co-op
+Mailing Address: 620 Market Row, Boise, ID 83702
+Business Description: Member-owned grocery cooperative, two retail locations
+Years in Business: 26
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-03-11
+Proposed Effective Date: 2026-01-01
+Proposed Expiration Date: 2027-01-01
+
+SECTION C - COVERAGE SUMMARY
+Total Insured Value: $22,650,000
+Blanket Building Limit: $10,900,000
+Blanket Contents Limit: $8,800,000
+Business Interruption Limit: $2,950,000
+Deductible: $25,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: High Desert Insurance Services (synthetic)
+Producer Contact: t.brennan@example.invalid
+Submission Channel: Email

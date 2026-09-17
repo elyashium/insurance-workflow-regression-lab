@@ -1,0 +1,11 @@
+SCHEDULE OF VALUES - PKT-006
+Insured: Blue Terrace Hospitality Group
+Prepared: 2026-01-20
+Submitted: 2026-01-22
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 500 Lakeshore Promenade | Madison, WI 53703 | Building: $14,200,000 | Contents: $6,900,000 | BI: $4,800,000 | Construction: Fire Resistive | Year Built: 2009
+LOC | L2 | 88 Terrace Court | Madison, WI 53711 | Building: $8,450,000 | Contents: $2,300,000 | BI: $1,350,000 | Construction: Joisted Masonry | Year Built: 1994
+
+SOV Total: $38,000,000

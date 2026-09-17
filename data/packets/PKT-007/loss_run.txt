@@ -1,0 +1,11 @@
+LOSS RUN - PKT-007
+Insured: Pinnacle Rail Services
+Carrier of Record: Transcontinental Indemnity (synthetic)
+Valuation Date: 2026-02-28
+Period: 5 years
+
+CLAIM | 2022-06-04 | Derailment / Property | Paid: $1,850,000 | Reserved: $0 | Status: Closed
+CLAIM | 2024-01-27 | Fire | Paid: $980,000 | Reserved: $420,000 | Status: Open
+CLAIM | 2025-08-15 | Flood | Paid: $1,240,000 | Reserved: $610,000 | Status: Open
+
+Total Incurred: $5,100,000

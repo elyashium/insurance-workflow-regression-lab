@@ -1,0 +1,10 @@
+LOSS RUN - PKT-006
+Insured: Blue Terrace Hospitality Group
+Carrier of Record: Badger Provident (synthetic)
+Valuation Date: 2026-01-05
+Period: 5 years
+
+CLAIM | 2023-12-19 | Water Damage (sprinkler) | Paid: $128,000 | Reserved: $0 | Status: Closed
+CLAIM | 2025-04-02 | Guest Liability | Paid: $71,000 | Reserved: $25,000 | Status: Open
+
+Total Incurred: $224,000

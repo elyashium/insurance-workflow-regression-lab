@@ -1,0 +1,10 @@
+SCHEDULE OF VALUES - PKT-005
+Insured: Ironvale Manufacturing Partners
+Prepared: 2026-02-24
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 7 Foundry Lane | Erie, PA 16505 | Building: $18,750,000 | Contents: $12,400,000 | BI: $5,500,000 | Construction: Fire Resistive | Year Built: 1983
+LOC | L2 | 2240 Slag Road | Erie, PA 16510 | Building: $9,300,000 | Contents: $7,600,000 | BI: $2,100,000 | Construction: Non-Combustible | Year Built: 1996
+
+SOV Total: $55,650,000

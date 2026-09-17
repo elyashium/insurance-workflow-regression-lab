@@ -1,0 +1,10 @@
+LOSS RUN - PKT-005
+Insured: Ironvale Manufacturing Partners
+Carrier of Record: Allegheny Standard (synthetic)
+Valuation Date: 2026-02-10
+Period: 5 years
+
+CLAIM | 2023-03-12 | Machinery Breakdown | Paid: $240,000 | Reserved: $0 | Status: Closed
+CLAIM | 2024-10-08 | Fire | Paid: $310,000 | Reserved: $60,000 | Status: Open
+
+Total Incurred: $610,000

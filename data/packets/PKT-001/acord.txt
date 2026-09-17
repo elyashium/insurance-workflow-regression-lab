@@ -1,0 +1,30 @@
+SIMPLIFIED COMMERCIAL PROPERTY APPLICATION
+(SYNTHETIC TRAINING DOCUMENT - NOT A REAL ACORD FORM. Field layout is an
+original simplification created for this demo and does not reproduce any
+copyrighted ACORD form text or layout.)
+
+Form Ref: SYN-125/140  |  Packet: PKT-001
+
+SECTION A - APPLICANT
+Named Insured: Harborline Cold Storage LLC
+Mailing Address: 4120 Dockside Way, Tacoma, WA 98421
+Business Description: Refrigerated warehousing and cold chain logistics
+Years in Business: 18
+FEIN: 00-0000000 (synthetic)
+
+SECTION B - DATES
+Date Received: 2026-03-02
+Proposed Effective Date: 2026-04-01
+Proposed Expiration Date: 2027-04-01
+
+SECTION C - COVERAGE SUMMARY
+Total Insured Value: $33,850,000
+Blanket Building Limit: $19,550,000
+Blanket Contents Limit: $10,700,000
+Business Interruption Limit: $3,600,000
+Deductible: $50,000 per occurrence
+
+SECTION D - PRODUCER
+Producer: Northgate Risk Advisors (synthetic)
+Producer Contact: r.alvarez@example.invalid
+Submission Channel: Broker portal

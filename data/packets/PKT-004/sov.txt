@@ -1,0 +1,10 @@
+SCHEDULE OF VALUES - PKT-004
+Insured: Sunhollow Grocers Co-op
+Prepared: 2026-03-09
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 620 Market Row | Boise, ID 83702 | Building: $4,800,000 | Contents: $3,600,000 | BI: $1,250,000 | Construction: Masonry Non-Combustible | Yr Built: 1991
+LOC | L2 | 1155 Orchard Bend | Meridian, ID 83642 | Building: $6,100,000 | Contents: $5,200,000 | BI: $1,700,000 | Construction: Non-Combustible | Yr Built: 2007
+
+SOV Total: $22,650,000

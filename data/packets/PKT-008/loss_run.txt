@@ -1,0 +1,10 @@
+LOSS RUN - PKT-008
+Insured: Quarry Point Data Centers
+Carrier of Record: Cascadia Technology Underwriters (synthetic)
+Valuation Date: 2026-03-01
+Period: 5 years
+
+CLAIM | 2024-05-30 | Power Surge / Equipment | Paid: $420,000 | Reserved: $0 | Status: Closed
+CLAIM | 2025-09-12 | Water Damage | Paid: $265,000 | Reserved: $85,000 | Status: Open
+
+Total Incurred: $770,000

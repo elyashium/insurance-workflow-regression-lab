@@ -1,0 +1,11 @@
+LOSS RUN - PKT-002
+Insured: Cedar Mill Textiles, Inc.
+Carrier of Record: Appalachian Indemnity (synthetic)
+Valuation Date: 2026-02-28
+Period: 5 years
+
+CLAIM | 2022-09-30 | Fire | Paid: $310,000 | Reserved: $0 | Status: Closed
+CLAIM | 2024-02-18 | Equipment Breakdown | Paid: $147,000 | Reserved: $35,000 | Status: Open
+CLAIM | 2025-06-11 | Water Damage | Paid: $61,000 | Reserved: $0 | Status: Closed
+
+Total Incurred: $553,000

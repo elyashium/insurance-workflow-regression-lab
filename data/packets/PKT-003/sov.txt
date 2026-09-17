@@ -1,0 +1,11 @@
+SCHEDULE OF VALUES - PKT-003
+Insured: Ridgeway Logistics Group
+Prepared: 2026-02-17
+Currency: USD
+Status: FINAL
+
+LOC | L1 | 1420 Kestrel Ave | Elkhart, IN 46514 | Building: $8,900,000 | Contents: $4,300,000 | BI: $1,100,000 | Construction: Non-Combustible | Year Built: 2011
+LOC | L2 | 77 Junction Parkway | Goshen, IN 46526 | Building: $14,250,000 | Contents: $9,800,000 | BI: $2,600,000 | Construction: Non-Combustible | Year Built: 2016
+LOC | L3 | 1420 Kestrel Avenue | Elkhart, IN 46514 | Building: $8,900,000 | Contents: $4,350,000 | BI: $1,100,000 | Construction: Non-Combustible | Year Built: 2011
+
+SOV Total: $40,950,000
