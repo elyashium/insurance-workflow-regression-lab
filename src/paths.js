@@ -18,7 +18,12 @@ export const DATA_DIR = join(ROOT_DIR, 'data');
 export const PACKETS_DIR = join(DATA_DIR, 'packets');
 
 /** Persisted runs, traces and human review decisions. */
-export const STORE_DIR = join(DATA_DIR, 'store');
+export const STORE_DIR = process.env.VERCEL
+  // Serverless filesystems are read-only except /tmp, and /tmp is ephemeral:
+  // reviews survive warm invocations but are not durable on Vercel. Runs are
+  // pure functions of the corpus so nothing else needs the disk.
+  ? join('/tmp', 'iwrl-store')
+  : join(DATA_DIR, 'store');
 
 /** Static frontend assets. */
 export const PUBLIC_DIR = join(ROOT_DIR, 'public');

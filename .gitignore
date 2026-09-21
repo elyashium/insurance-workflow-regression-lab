@@ -17,3 +17,5 @@ data/store/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+.vercel

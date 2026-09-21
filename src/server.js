@@ -504,7 +504,9 @@ export async function handleRequest(req, res) {
     if (status >= 500) console.error(err);
     return send(res, status, { error: message });
   }
-});
+}
+
+export const server = createServer(handleRequest);
 
 // Only listen when started directly, so tests can import the server and drive
 // it on an ephemeral port without a second process.
