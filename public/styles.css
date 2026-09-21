@@ -55,10 +55,7 @@
   --plum: #7a4a6e;
 
   /* Fonts. Violet Sans throughout (single weight — heavier weights
-     synthesize); JetBrains Mono for data and code. Georgia italic for the
-     pull-quote only. */
-  --serif: Georgia, "Times New Roman", serif;
-  --serif: Georgia, "Times New Roman", serif;
+     synthesize); JetBrains Mono for data and code. */
   --sans: "Violet Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 
