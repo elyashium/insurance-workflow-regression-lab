@@ -46,6 +46,31 @@ npm run typecheck
 
 ---
 
+## Deploy
+
+The app is one long-running `node:http` server, but it also deploys to Vercel
+as-is: `src/server.js` is auto-detected as the server entrypoint (it must keep
+its default export), the `public/` directory is served by the CDN, and
+`vercel.json` bundles the `data/` corpus and `public/` assets into the
+function. No code paths differ between local and deployed.
+
+```bash
+vercel --prod
+```
+
+Two serverless caveats, both by design rather than accident:
+
+- **Reviews are ephemeral when deployed.** Locally they append to
+  `data/store/reviews.json`; on Vercel (`VERCEL` env set) they go to `/tmp`,
+  which survives warm invocations but is not durable. Runs are pure functions
+  of the corpus so nothing else needs the disk.
+- **Cold starts replay the corpus.** The first request to an idle deployment
+  runs all eight packets through the requested versions — milliseconds, but
+  measurably slower than a warm hit. Latency figures on a cold run reflect the
+  serverless host, not the pipeline.
+
+---
+
 ## The 60-second tour
 
 1. **Scorecard** — v1 vs v2 across the whole corpus. Read the verdict banner first,

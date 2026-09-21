@@ -508,6 +508,13 @@ export async function handleRequest(req, res) {
 
 export const server = createServer(handleRequest);
 
+/**
+ * Default export for Vercel: `src/server.js` is auto-detected as the server
+ * entrypoint and must default-export the server (or a handler). Local `npm
+ * start` behaviour is unchanged — the listen guard below still applies.
+ */
+export default server;
+
 // Only listen when started directly, so tests can import the server and drive
 // it on an ephemeral port without a second process.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
