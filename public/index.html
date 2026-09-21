@@ -11,46 +11,64 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">&#10033;</span>
-        <div>
-          <h1>Workflow Quality Lab</h1>
-          <p class="brand-sub">Pipeline Regression &amp; Release Verification</p>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">&#10033;</span>
+          <div>
+            <h1>Workflow Quality Lab</h1>
+            <p class="brand-sub">Regression &amp; release verification</p>
+          </div>
         </div>
+
+        <nav class="library-nav" id="nav" aria-label="Main Navigation">
+          <div class="nav-section">Evaluate</div>
+          <a href="#/compare" data-view="compare"><span class="dot dot-green"></span>Scorecard</a>
+          <a href="#/submissions" data-view="submissions"><span class="dot dot-blue"></span>Submissions</a>
+          <a href="#/review" data-view="review"><span class="dot dot-amber"></span>Review Queue</a>
+          <div class="nav-section">Reference</div>
+          <a href="#/about" data-view="about"><span class="dot dot-plum"></span>About</a>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="corpus-line"><span>Submissions</span><strong id="sb-packets">&ndash;</strong></div>
+          <div class="corpus-line"><span>Workflow versions</span><strong id="sb-versions">&ndash;</strong></div>
+          <div class="corpus-note">Synthetic corpus &middot; deterministic replay</div>
+        </div>
+      </aside>
+
+      <div class="main-col">
+        <div class="crumbs" id="crumbs">
+          <span>Regression Lab</span>
+          <span class="crumb-sep">/</span>
+          <strong id="crumb-view">Scorecard</strong>
+        </div>
+
+        <div class="synthetic-banner" id="synthetic-banner">
+          <span class="banner-pill">Demo Environment</span>
+          <span>Synthetic test submissions &bull; Deterministic evaluation &bull; Not underwriting guidance</span>
+        </div>
+
+        <main id="main" aria-live="polite">
+          <div class="loading">
+            <div class="spinner"></div>
+            <span>Evaluating workflow versions&hellip;</span>
+          </div>
+        </main>
+
+        <footer class="footer">
+          <div class="footer-left">
+            <span class="footer-mark">&#10033;</span>
+            <span>Workflow Quality Lab</span>
+            <span class="footer-sep">&middot;</span>
+            <span>Field-level verification harness</span>
+          </div>
+          <div class="footer-right">
+            <span id="footer-pricing"></span>
+          </div>
+        </footer>
       </div>
-
-      <nav class="tabs" id="nav" aria-label="Main Navigation">
-        <a href="#/compare" data-view="compare">Scorecard</a>
-        <a href="#/submissions" data-view="submissions">Submissions</a>
-        <a href="#/review" data-view="review">Review Queue</a>
-        <a href="#/about" data-view="about">About</a>
-      </nav>
-    </header>
-
-    <div class="synthetic-banner" id="synthetic-banner">
-      <span class="banner-pill">Demo Environment</span>
-      <span>Synthetic test submissions &bull; Deterministic evaluation &bull; Not underwriting guidance</span>
     </div>
-
-    <main id="main" aria-live="polite">
-      <div class="loading">
-        <div class="spinner"></div>
-        <span>Evaluating workflow versions&hellip;</span>
-      </div>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-left">
-        <span class="footer-mark">&#10033;</span>
-        <span>Workflow Quality Lab</span>
-        <span class="footer-sep">&middot;</span>
-        <span>Field-level verification harness</span>
-      </div>
-      <div class="footer-right">
-        <span id="footer-pricing"></span>
-      </div>
-    </footer>
 
     <script type="module" src="/app.js"></script>
   </body>
