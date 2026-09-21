@@ -12,6 +12,8 @@ import { getVersion } from './versions.js';
 import { runPacket } from './runner.js';
 import { scoreRun, summarize, compare, calibration } from './scorecard.js';
 import { runDrills as scoreDrills } from './drills.js';
+import { perturbPacket, PERTURB_PROFILES } from './perturb.js';
+import { hashCorpus, hashProfile, buildManifest } from './manifest.js';
 
 /**
  * Run every packet through one version and score the results.
@@ -45,6 +47,10 @@ export async function runSuite(versionId, preloaded = {}) {
     scored,
     summary: summarize(scored),
     calibration: calibration(scored),
+    manifest: buildManifest(
+      { versionId, guidelines: version.guidelines, scored },
+      { corpusHash: hashCorpus(packets, groundTruth), profileHash: hashProfile(version.extractorProfile) },
+    ),
   };
 }
 
@@ -197,6 +203,54 @@ export async function runDrills(baselineId, candidateId) {
 }
 
 /**
+ * Score one version on clean input and on every perturbation profile, against
+ * the same ground truth. Values never move — only ink does — so any accuracy
+ * change measures the reader, and any decision change is reported by packet.
+ *
+ * @param {string} versionId
+ * @returns {Promise<any>}
+ */
+export async function runRobustness(versionId) {
+  const version = getVersion(versionId);
+  const groundTruth = await loadGroundTruth();
+
+  const clean = await runSuite(versionId, {
+    groundTruth,
+    packets: await loadAllPackets(),
+  });
+  const cleanDecisions = new Map(clean.scored.map((s) => [s.run.packetId, s.run.routing.decision]));
+
+  const profiles = [];
+  for (const profileId of Object.keys(PERTURB_PROFILES)) {
+    const degraded = (await loadAllPackets()).map((p) => perturbPacket(p, profileId));
+    const suite = await runSuite(versionId, { groundTruth, packets: degraded });
+    const moved = suite.scored
+      .filter((s) => s.run.routing.decision !== cleanDecisions.get(s.run.packetId))
+      .map((s) => s.run.packetId);
+    profiles.push({
+      profile: profileId,
+      description: PERTURB_PROFILES[profileId],
+      accuracy: suite.summary.accuracy,
+      correct: suite.summary.correct,
+      total: suite.summary.total,
+      deltaVsClean: suite.summary.accuracy - clean.summary.accuracy,
+      decisionsMoved: moved,
+    });
+  }
+
+  return {
+    versionId,
+    versionName: version.name,
+    clean: {
+      accuracy: clean.summary.accuracy,
+      correct: clean.summary.correct,
+      total: clean.summary.total,
+    },
+    profiles,
+  };
+}
+
+/**
  * Strip the heavy per-run payloads out of a suite for API responses. The full
  * run, with its trace and evidence spans, is fetched one at a time.
  *
@@ -211,6 +265,7 @@ function publicSuite(suite) {
     guidelines: suite.guidelines,
     summary: suite.summary,
     calibration: suite.calibration,
+    manifest: suite.manifest,
     packets: suite.scored.map((s) => ({
       packetId: s.run.packetId,
       packetLabel: s.run.packetLabel,

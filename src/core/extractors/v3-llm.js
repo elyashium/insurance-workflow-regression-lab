@@ -219,8 +219,8 @@ export async function llmExtract(packet, profile) {
   let incurred = 0;
   let unreadableLoss = 0;
   const lossRecords = losses.map((row, i) => {
-    const paid = toNumber(row?.paid);
-    const reserved = toNumber(row?.reserved);
+    const paid = toNumber(row?.paid?.value);
+    const reserved = toNumber(row?.reserved?.value);
     if (paid == null) unreadableLoss++;
     else incurred += paid;
     if (reserved == null) unreadableLoss++;

@@ -14,6 +14,7 @@
  */
 
 import { createServer } from 'node:http';
+import { timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { extname, join, resolve as resolvePath, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -21,7 +22,7 @@ import { pathToFileURL } from 'node:url';
 import { PUBLIC_DIR } from './paths.js';
 import { loadAllPackets, loadPacket, loadGroundTruth, listPacketIds } from './core/packets.js';
 import { VERSIONS, DEFAULT_COMPARISON, getVersion } from './core/versions.js';
-import { runSuite, runWhatIf, runDrills } from './core/lab.js';
+import { runSuite, runWhatIf, runDrills, runRobustness } from './core/lab.js';
 import { compare } from './core/scorecard.js';
 import { PRICING } from './core/cost.js';
 import {
@@ -176,6 +177,7 @@ async function route(url, req) {
         guidelines: suite.guidelines,
         summary: suite.summary,
         calibration: suite.calibration,
+        manifest: suite.manifest,
         packets: suite.scored.map((/** @type {any} */ s) => ({
           ...packetRow(s),
           correct: s.score.correct,
@@ -260,6 +262,9 @@ async function route(url, req) {
   }
 
   if (method === 'POST' && path === '/api/reviews') {
+    if (!authorized(req)) {
+      return { status: 401, data: { error: 'Recording a review requires the shared key (x-api-key header).' } };
+    }
     const review = await recordReview(await readJsonBody(req));
     return { status: 201, data: { review } };
   }
@@ -279,6 +284,11 @@ async function route(url, req) {
       if (raw != null && raw !== '') overrides[key] = Number(raw);
     }
     return { data: await runWhatIf(versionId, overrides) };
+  }
+
+  if (method === 'GET' && path === '/api/robustness') {
+    const versionId = url.searchParams.get('version') ?? DEFAULT_COMPARISON.candidate;
+    return { data: await runRobustness(versionId) };
   }
 
   return null;
@@ -317,6 +327,7 @@ function suiteHeader(suite) {
     guidelines: suite.guidelines,
     summary: suite.summary,
     calibration: suite.calibration,
+    manifest: suite.manifest,
   };
 }
 
@@ -474,6 +485,24 @@ class NotFound extends Error {
     this.name = 'NotFound';
     this.status = 404;
   }
+}
+
+/**
+ * Write-path gate. Reads stay open; recording a review requires the shared
+ * key when LAB_API_KEY is set. Compared in constant time — a demo auth gate
+ * should still not leak its secret one timing sample at a time.
+ *
+ * @param {import('node:http').IncomingMessage} req
+ * @returns {boolean}
+ */
+export function authorized(req) {
+  const required = process.env.LAB_API_KEY;
+  if (!required) return true;
+  const got = req.headers['x-api-key'];
+  if (typeof got !== 'string' || got.length === 0) return false;
+  const a = Buffer.from(got);
+  const b = Buffer.from(required);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 /**

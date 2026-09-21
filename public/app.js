@@ -237,7 +237,15 @@ async function loadViewData() {
         api(`/api/compare?${params}`),
         api(`/api/drills?${params}`),
       ]);
-      state.data = { ...cmp, drills: drills.drills };
+      // Robustness replays four extra suites; if it fails (a model-backed
+      // candidate with no key and no cache), the scorecard stands without it.
+      let robustness = null;
+      try {
+        robustness = await api(`/api/robustness?version=${encodeURIComponent(state.candidate)}`);
+      } catch {
+        /* diagnostic only */
+      }
+      state.data = { ...cmp, drills: drills.drills, robustness };
       break;
     }
     case 'submissions':
@@ -450,6 +458,8 @@ function renderCompare() {
     </div>
 
     ${whatifCard(candidate)}
+
+    ${state.data.robustness ? robustnessCard(state.data.robustness) : ''}
 
     <div class="card">
       <h3>Decisions</h3>
@@ -718,7 +728,6 @@ function whatifCard(candidate) {
 
 /** @param {any} res */
 function whatifResults(res) {
-  if (!res.changed.length) return '<div class="empty">No packet moved under these thresholds.</div>';
   return `
     <table>
       <thead><tr><th>Packet</th><th>Was</th><th>Would be</th><th>Flags</th></tr></thead>
