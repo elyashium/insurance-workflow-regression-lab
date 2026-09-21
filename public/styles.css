@@ -54,9 +54,13 @@
   --blue: #35648f;
   --plum: #7a4a6e;
 
-  /* Fonts */
+  /* Fonts.
+     Display face is provisional (see the embed <link> in index.html): if the
+     "Zephyr Regular" webfont fails to load, headings fall back to Newsreader.
+     Body is Violet Sans (single weight — heavier weights synthesize). */
+  --display: "Zephyr Regular", "Newsreader", Georgia, serif;
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
-  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --sans: "Violet Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 
   /* Geometry & shadow (paper casts almost no shadow — hairlines do the work) */
@@ -99,10 +103,10 @@ a:hover {
 h1, h2, h3, h4 {
   margin: 0;
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--display);
   font-weight: 500;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
+  letter-spacing: 0;
+  line-height: 1.15;
 }
 
 code, .mono {
@@ -146,7 +150,7 @@ code, .mono {
   font-size: 19px;
   line-height: 1.2;
   color: var(--green-deep);
-  font-family: var(--serif);
+  font-family: var(--display);
 }
 
 .sidebar h1 {
@@ -586,7 +590,7 @@ button[disabled] {
 .verdict-icon {
   font-size: 20px;
   line-height: 1;
-  font-family: var(--serif);
+  font-family: var(--display);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -611,7 +615,7 @@ button[disabled] {
 .verdict.regressed .verdict-status { color: var(--red-deep); }
 
 .verdict-title {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 21px;
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -675,7 +679,7 @@ button[disabled] {
 
 .metric-cand {
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 29px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -1174,7 +1178,7 @@ ul.plain li {
 }
 
 .footer-mark {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 14px;
   color: var(--green-deep);
 }
@@ -1211,6 +1215,50 @@ details.changes summary {
 }
 details.changes ul {
   margin-top: 10px;
+}
+
+/* ==========================================================================
+   Welcome gate — the user loads the corpus explicitly, nothing auto-runs
+   ========================================================================== */
+
+.welcome {
+  max-width: 620px;
+  margin: 56px auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 38px 42px;
+  box-shadow: var(--shadow-card);
+}
+
+.welcome h2 {
+  font-size: 35px;
+  margin-bottom: 8px;
+}
+
+.welcome p {
+  margin: 0 0 18px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  max-width: 48ch;
+}
+
+.welcome .version-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.btn-big {
+  font-size: 14px;
+  padding: 11px 28px;
+}
+
+.welcome-note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--ink-faint);
 }
 
 /* ==========================================================================

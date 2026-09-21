@@ -7,6 +7,7 @@ const CONFIDENCE_FLOOR = 0.6;
 
 const state = {
   /** @type {any} */ meta: null,
+  ready: false,
   view: 'compare',
   versionId: null,
   packetId: null,
@@ -204,6 +205,14 @@ async function navigate() {
     if (packetId) state.packetId = decodeURIComponent(packetId);
   }
 
+  // Nothing corpus-backed runs before the user asks for it. The About page
+  // is static and stays readable; every other view needs loaded data.
+  if (!state.ready && state.view !== 'about') {
+    renderShell();
+    renderWelcome();
+    return;
+  }
+
   renderShell();
   render(`
     <div class="loading">
@@ -306,6 +315,25 @@ function versionSelect(selected, name) {
 }
 
 /* ------------------------------------------------------------------ *
+ * View: Welcome gate — the user loads the corpus explicitly
+ * ------------------------------------------------------------------ */
+
+function renderWelcome() {
+  const crumb = document.getElementById('crumb-view');
+  if (crumb) crumb.textContent = 'Load data';
+  const versions = state.meta?.versions ?? [];
+  return render(`
+    <div class="welcome">
+      <h2>Replay a workflow change.</h2>
+      <p>The submission corpus, run through every workflow version and diffed field by field — so a better average can't hide a regression.</p>
+      <div class="version-chips">${versions.map((v) => `<span class="badge edge">${esc(v.name)}</span>`).join('')}</div>
+      <button class="primary btn-big" data-action="load">Load evaluation data</button>
+      <div class="welcome-note">Runs locally in milliseconds. Cost figures are simulated.</div>
+    </div>
+  `);
+}
+
+/* ------------------------------------------------------------------ *
  * View: Comparison / Scorecard
  * ------------------------------------------------------------------ */
 
@@ -318,21 +346,21 @@ function renderCompare() {
     ? `<div class="verdict regressed">
          <div class="verdict-icon">&#10033;</div>
          <div class="verdict-body">
-           <div class="verdict-status">Regression Detected &bull; Release Blocked</div>
-           <div class="verdict-title">${diff.regressions.length} previously accurate field${diff.regressions.length === 1 ? '' : 's'} became incorrect in ${esc(candidate.versionName)}.</div>
-           <div class="verdict-desc">
-             Overall accuracy changed by ${d.accuracy >= 0 ? '+' : '−'}${pct(Math.abs(d.accuracy))}, but this candidate cannot be deployed because critical fields lost accuracy.
-           </div>
+            <div class="verdict-status">Regression Detected &bull; Release Blocked</div>
+            <div class="verdict-title">${diff.regressions.length} field${diff.regressions.length === 1 ? '' : 's'} broke in ${esc(candidate.versionName)}.</div>
+            <div class="verdict-desc">
+              Accuracy moved ${d.accuracy >= 0 ? '+' : '−'}${pct(Math.abs(d.accuracy))}, but previously correct fields broke — the candidate is blocked.
+            </div>
          </div>
        </div>`
     : `<div class="verdict clean">
          <div class="verdict-icon">&#10003;</div>
          <div class="verdict-body">
-           <div class="verdict-status">Clean Release &bull; Ready to Deploy</div>
-           <div class="verdict-title">No regressions detected.</div>
-           <div class="verdict-desc">
-             All previously accurate fields remain correct, and ${diff.improvements.length} field${diff.improvements.length === 1 ? '' : 's'} improved.
-           </div>
+            <div class="verdict-status">Clean Release &bull; Ready to Deploy</div>
+            <div class="verdict-title">No regressions detected.</div>
+            <div class="verdict-desc">
+              Everything previously correct held, and ${diff.improvements.length} field${diff.improvements.length === 1 ? '' : 's'} improved.
+            </div>
          </div>
        </div>`;
 
@@ -340,9 +368,7 @@ function renderCompare() {
     <div class="view-head">
       <div>
         <h2>Workflow Comparison</h2>
-        <p>
-          Compare pipeline versions on identical submissions. Verifies that overall gains do not introduce regressions on critical fields.
-        </p>
+        <p>Same submissions, two versions — gains must not break what worked.</p>
       </div>
       <div class="controls">
         <label class="field">Baseline Version ${versionSelect(baseline.versionId, 'baseline')}</label>
@@ -363,24 +389,21 @@ function renderCompare() {
 
       ${metric('Average Processing Time', ms(diff.summary.baseline.meanLatencyMs), ms(diff.summary.candidate.meanLatencyMs),
         deltaEl(d.meanLatencyMs, ms, 'down-good'),
-        'Measured pipeline latency')}
+        'Measured')}
 
       ${metric('Estimated Cost', cost(diff.summary.baseline.totalCostUsd), cost(diff.summary.candidate.totalCostUsd),
         deltaEl(d.totalCostUsd, cost, 'down-good'),
-        'Simulated token cost')}
+        'Simulated')}
     </div>
 
     ${diff.regressions.length ? regressionTable(diff.regressions, 'Regressions (Release Blockers)', 'regression-row',
-      'Fields the previous version read accurately that this candidate got wrong.') : ''}
+      'Right before, wrong now.') : ''}
 
     ${diff.improvements.length ? regressionTable(diff.improvements, 'Improvements', 'improvement-row',
-      'Fields accurately extracted in the new version.') : ''}
+      'Fixed by the candidate.') : ''}
 
     <div class="card">
-      <h3>Automated Decisions Breakdown</h3>
-      <p class="card-note">
-        High-level distribution of automated quotes, declines, and escalations to human review.
-      </p>
+      <h3>Decisions</h3>
       <table>
         <thead>
           <tr>
@@ -400,10 +423,7 @@ function renderCompare() {
     </div>
 
     <div class="card">
-      <h3>Submission Comparison</h3>
-      <p class="card-note">
-        Outcome and accuracy movement across each submission in the test set.
-      </p>
+      <h3>Submissions</h3>
       <table>
         <thead>
           <tr>
@@ -569,7 +589,6 @@ function renderSubmissions() {
     <div class="view-head">
       <div>
         <h2>Submissions</h2>
-        <p>${esc(s.versionSummary)}</p>
       </div>
       <div class="controls">
         <label class="field">Workflow Version ${versionSelect(s.versionId, 'version')}</label>
@@ -580,8 +599,8 @@ function renderSubmissions() {
       ${simpleMetric('Total Submissions', String(s.summary.packets))}
       ${simpleMetric('Field Accuracy', pct(s.summary.accuracy), `${s.summary.correct} / ${s.summary.total} fields correct`)}
       ${simpleMetric('Human Review Rate', pct(s.summary.abstentionRate), `${s.summary.abstained} sent to review`)}
-      ${simpleMetric('Average Latency', ms(s.summary.meanLatencyMs), 'Measured execution time')}
-      ${simpleMetric('Estimated Cost', cost(s.summary.totalCostUsd), 'Simulated tokens')}
+      ${simpleMetric('Average Latency', ms(s.summary.meanLatencyMs), 'Measured')}
+      ${simpleMetric('Estimated Cost', cost(s.summary.totalCostUsd), 'Simulated')}
     </div>
 
     <div class="card">
@@ -642,9 +661,9 @@ function renderPacket() {
   const { run, score, groundTruth, packet } = state.data;
 
   const tabs = [
-    ['evidence', 'Extracted Fields &amp; Evidence'],
-    ['guidelines', 'Validation Checks &amp; Conflicts'],
-    ['trace', 'Execution Trace'],
+    ['evidence', 'Fields &amp; Evidence'],
+    ['guidelines', 'Checks &amp; Conflicts'],
+    ['trace', 'Trace'],
   ]
     .map(
       ([id, label]) =>
@@ -671,10 +690,10 @@ function renderPacket() {
     </div>
 
     <div class="metrics">
-      ${simpleMetric('Routing Decision', decisionBadge(run.routing.decision), run.routing.abstained ? 'Escalated to human underwriter' : 'Automatically resolved')}
+      ${simpleMetric('Routing Decision', decisionBadge(run.routing.decision), run.routing.abstained ? 'Escalated for human review' : 'Resolved automatically')}
       ${simpleMetric('Insured Property Value', usd(run.fields.computedTiv?.value), `Stated on form: ${usd(run.fields.statedTiv?.value)}`)}
-      ${simpleMetric('Field Accuracy', pct(score.accuracy), `${score.correct} / ${score.total} items correct`)}
-      ${simpleMetric('Latency', ms(run.durationMs), 'Measured execution time')}
+      ${simpleMetric('Field Accuracy', pct(score.accuracy), `${score.correct} / ${score.total} items`)}
+      ${simpleMetric('Latency', ms(run.durationMs), 'Measured')}
       ${simpleMetric('Cost', cost(run.cost.usd), `Simulated (${run.cost.passes} passes)`)}
     </div>
 
@@ -732,17 +751,15 @@ function renderEvidenceTab(run, score, groundTruth, packet) {
     <div class="grid-2">
       <div class="card">
         <h3>Extracted Fields</h3>
-        <p class="card-note">
-          Click any row to jump to and highlight its source text in the document viewer.
-        </p>
+        <p class="card-note">Select a row to see its source.</p>
         <table>
           <thead>
             <tr>
               <th>Field</th>
-              <th>Extracted Value</th>
-              <th>Accuracy vs Ground Truth</th>
+              <th>Value</th>
+              <th>Accuracy</th>
               <th class="num">Confidence</th>
-              <th>Source / Method</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody>${scalarRows}${locationRows}</tbody>
@@ -750,7 +767,7 @@ function renderEvidenceTab(run, score, groundTruth, packet) {
       </div>
 
       <div class="card">
-        <h3>Source Document Viewer</h3>
+        <h3>Source</h3>
         <p class="evidence-hint">
           ${state.selectedSpan
             ? `Highlighting <strong>${friendlyFieldName(state.selectedKey)}</strong> in <em>${esc(state.selectedSpan.docName)}</em> at line ${state.selectedSpan.line}`
@@ -782,10 +799,7 @@ function highlighted(doc) {
 function renderGuidelinesTab(run) {
   return `
     <div class="card">
-      <h3>Automated Underwriting Checks</h3>
-      <p class="card-note">
-        Rule evaluation based on insurer policy guidelines.
-      </p>
+      <h3>Guideline checks</h3>
       <table>
         <thead><tr><th>Rule</th><th>Description</th><th>Status</th><th>Result</th></tr></thead>
         <tbody>
@@ -805,10 +819,7 @@ function renderGuidelinesTab(run) {
     </div>
 
     <div class="card">
-      <h3>Document Discrepancies</h3>
-      <p class="card-note">
-        Conflicts detected between submission documents that require reconciliation.
-      </p>
+      <h3>Conflicts</h3>
       ${run.conflicts.length
         ? run.conflicts
             .map(
@@ -823,7 +834,7 @@ function renderGuidelinesTab(run) {
     </div>
 
     <div class="card">
-      <h3>Routing Outcome</h3>
+      <h3>Routing</h3>
       <p class="card-note">Decision: ${decisionBadge(run.routing.decision)}</p>
       ${run.routing.reasons.length
         ? run.routing.reasons
@@ -845,10 +856,8 @@ function renderTraceTab(run) {
 
   return `
     <div class="card">
-      <h3>Execution Timeline</h3>
-      <p class="card-note">
-        Pipeline stages with measured execution time. Total: <strong>${ms(run.durationMs)}</strong>
-      </p>
+      <h3>Trace</h3>
+      <p class="card-note">Total: <strong>${ms(run.durationMs)}</strong>, measured.</p>
       ${run.trace
         .map(
           (step) => `
@@ -877,9 +886,7 @@ function renderReview() {
     <div class="view-head">
       <div>
         <h2>Review Queue</h2>
-        <p>
-          Submissions escalated to human underwriters due to low confidence readings, document conflicts, or policy guidelines.
-        </p>
+        <p>Packets the pipeline declined to decide alone.</p>
       </div>
       <div class="controls">
         <label class="field">Workflow Version ${versionSelect(q.versionId, 'version')}</label>
@@ -887,9 +894,9 @@ function renderReview() {
     </div>
 
     <div class="metrics">
-      ${simpleMetric('Awaiting Underwriter Review', String(q.items.length))}
-      ${simpleMetric('Automated Decisions', String(q.cleared))}
-      ${simpleMetric('Reviewed by Underwriter', String(q.items.filter((i) => i.review).length))}
+      ${simpleMetric('Awaiting review', String(q.items.length))}
+      ${simpleMetric('Auto-decided', String(q.cleared))}
+      ${simpleMetric('Reviewed', String(q.items.filter((i) => i.review).length))}
     </div>
 
     ${q.items.length ? q.items.map(queueItem).join('') : '<div class="card"><div class="empty">All submissions in this version were resolved automatically.</div></div>'}
@@ -907,20 +914,20 @@ function queueItem(item) {
         </div>
         <div class="right">
           <div class="faint">Total Property Value: <strong>${usd(item.computedTiv)}</strong></div>
-          <a href="#/packet/${encodeURIComponent(item.versionId)}/${encodeURIComponent(item.packetId)}" style="font-weight:500">Open Source Documents &rarr;</a>
+          <a href="#/packet/${encodeURIComponent(item.versionId)}/${encodeURIComponent(item.packetId)}" style="font-weight:500">Open detail &rarr;</a>
         </div>
       </div>
 
-      <h4 style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Reason for Escalation</h4>
+      <h4 style="font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Why escalated</h4>
       ${item.reasons.map((r) => `<div class="reason"><span class="reason-kind">${esc(r.kind)}</span>${esc(r.detail)}</div>`).join('')}
 
       ${item.flags.length
-        ? `<h4 style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Guideline Flags</h4>
+        ? `<h4 style="font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Flags</h4>
            ${item.flags.map((f) => `<div class="reason"><span class="reason-kind">${esc(f.id)}</span><strong>${esc(f.title)}</strong><br />${esc(f.detail)}</div>`).join('')}`
         : ''}
 
       ${item.lowConfidence.length
-        ? `<h4 style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Fields Requiring Verification</h4>
+        ? `<h4 style="font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px">Verify</h4>
            <table>
              <thead><tr><th>Field</th><th>Extracted Value</th><th class="num">Confidence</th><th>Source</th></tr></thead>
              <tbody>${item.lowConfidence
@@ -1038,6 +1045,22 @@ function renderAbout() {
 document.addEventListener('click', (event) => {
   const target = /** @type {HTMLElement} */ (event.target);
 
+  const loadBtn = target.closest('[data-action="load"]');
+  if (loadBtn) {
+    state.ready = true;
+    (async () => {
+      try {
+        const packets = await api('/api/packets');
+        const el = document.getElementById('sb-packets');
+        if (el && Array.isArray(packets)) el.textContent = String(packets.length);
+      } catch {
+        /* Sidebar counts are decorative; the views load their own data. */
+      }
+      navigate();
+    })();
+    return;
+  }
+
   const row = target.closest('tr[data-href]');
   if (row) {
     location.hash = /** @type {HTMLElement} */ (row).dataset.href;
@@ -1153,14 +1176,6 @@ window.addEventListener('hashchange', navigate);
 
   const versionsEl = document.getElementById('sb-versions');
   if (versionsEl) versionsEl.textContent = String(state.meta.versions.length);
-
-  try {
-    const packets = await api('/api/packets');
-    const packetsEl = document.getElementById('sb-packets');
-    if (packetsEl && Array.isArray(packets)) packetsEl.textContent = String(packets.length);
-  } catch {
-    /* Sidebar counts are decorative; the views load their own data. */
-  }
 
   if (!location.hash) location.hash = '#/compare';
   else await navigate();
