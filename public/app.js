@@ -231,11 +231,15 @@ async function navigate() {
 
 async function loadViewData() {
   switch (state.view) {
-    case 'compare':
-      state.data = await api(
-        `/api/compare?baseline=${encodeURIComponent(state.baseline)}&candidate=${encodeURIComponent(state.candidate)}`,
-      );
+    case 'compare': {
+      const params = `baseline=${encodeURIComponent(state.baseline)}&candidate=${encodeURIComponent(state.candidate)}`;
+      const [cmp, drills] = await Promise.all([
+        api(`/api/compare?${params}`),
+        api(`/api/drills?${params}`),
+      ]);
+      state.data = { ...cmp, drills: drills.drills };
       break;
+    }
     case 'submissions':
       state.data = await api(`/api/suites/${encodeURIComponent(state.versionId)}`);
       break;
@@ -435,6 +439,18 @@ function renderCompare() {
     ${diff.improvements.length ? regressionTable(diff.improvements, 'Improvements', 'improvement-row',
       'Fixed by the candidate.') : ''}
 
+    <div class="grid-2">
+      ${slicesCard(diff)}
+      ${drillsCard(state.data.drills)}
+    </div>
+
+    <div class="grid-2">
+      ${calibrationCard(baseline, 'Baseline calibration')}
+      ${calibrationCard(candidate, 'Candidate calibration')}
+    </div>
+
+    ${whatifCard(candidate)}
+
     <div class="card">
       <h3>Decisions</h3>
       <table>
@@ -609,6 +625,117 @@ function versionCard(suite) {
         </ul>
       </details>
     </div>`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Lab instruments: slices, drills, calibration, what-if
+ * ------------------------------------------------------------------ */
+
+/** @param {any} diff */
+function slicesCard(diff) {
+  const rows = (diff.slices ?? [])
+    .map(
+      (s) => `
+      <tr>
+        <td>${s.slice === 'none' ? '<span class="badge edge">No edge case</span>' : edgeBadge(s.slice.toLowerCase())}</td>
+        <td class="num">${s.packets}</td>
+        <td class="num ${s.regressions ? 'val-bad' : ''}">${s.regressions ? `−${s.regressions}` : '—'}</td>
+        <td class="num ${s.improvements ? 'val-good' : ''}">${s.improvements ? `+${s.improvements}` : '—'}</td>
+        <td class="num">${s.net > 0 ? `+${s.net}` : s.net}</td>
+      </tr>`,
+    )
+    .join('');
+  return `
+    <div class="card">
+      <h3>Movement by edge case</h3>
+      <p class="card-note">Which planted failure mode moved. Slices overlap — a packet with three tags counts in three.</p>
+      ${rows ? `<table>
+        <thead><tr><th>Slice</th><th class="num">Packets</th><th class="num">Lost</th><th class="num">Gained</th><th class="num">Net</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>` : '<div class="empty">Nothing moved.</div>'}
+    </div>`;
+}
+
+/** @param {any[]} drills */
+function drillsCard(drills) {
+  if (!drills?.length) return '';
+  return `
+    <div class="card">
+      <h3>Fault drills</h3>
+      <p class="card-note">Failures injected into the candidate on purpose. Each must be caught and named.</p>
+      ${drills
+        .map(
+          (d) => `
+        <div class="reason">
+          <span class="reason-kind">${d.caught ? 'Caught' : 'Missed'} &middot; ${esc(d.id)}</span>
+          <strong>${esc(d.title)}</strong><br />${esc(d.description)}
+          ${d.flipped.length ? `<br /><span class="faint">${d.flipped.map((f) => `${esc(f.packetId)} · ${friendlyFieldName(f.key)}`).join('; ')}</span>` : ''}
+        </div>`,
+        )
+        .join('')}
+    </div>`;
+}
+
+/**
+ * @param {any} suite
+ * @param {string} title
+ */
+function calibrationCard(suite, title) {
+  const bands = suite.calibration ?? [];
+  return `
+    <div class="card">
+      <h3>${esc(title)}</h3>
+      <p class="card-note">${esc(suite.versionName)} — reported confidence vs. actual accuracy.</p>
+      ${bands
+        .map(
+          (b) => `
+        <div class="cal-row">
+          <span class="cal-range">${esc(b.range)}</span>
+          <div class="cal-track"><div class="cal-fill" style="width:${b.accuracy == null ? 0 : (b.accuracy * 100).toFixed(1)}%"></div></div>
+          <span class="cal-stat">${b.accuracy == null ? 'no data' : `${pct(b.accuracy)} · ${b.correct}/${b.n}`}</span>
+        </div>`,
+        )
+        .join('')}
+    </div>`;
+}
+
+/** @param {any} candidate */
+function whatifCard(candidate) {
+  const g = candidate.guidelines;
+  return `
+    <div class="card">
+      <h3>What-if thresholds</h3>
+      <p class="card-note">Move a guideline and re-run ${esc(candidate.versionName)} for real. Hypothetical — nothing is saved.</p>
+      <div class="whatif-form">
+        <label class="field">Appetite ceiling ($M)<input id="wi-ceiling" type="text" inputmode="decimal" placeholder="${(g.tivCeiling / 1e6).toFixed(0)}" /></label>
+        <label class="field">Loss ratio ceiling (%)<input id="wi-loss" type="text" inputmode="decimal" placeholder="${g.lossRatioCeilingPct}" /></label>
+        <label class="field">Effective window (months)<input id="wi-months" type="text" inputmode="numeric" placeholder="${g.maxMonthsAhead}" /></label>
+        <button class="primary" data-action="whatif">Re-run</button>
+      </div>
+      <div id="whatif-results"><span class="faint">No hypothetical run yet.</span></div>
+    </div>`;
+}
+
+/** @param {any} res */
+function whatifResults(res) {
+  if (!res.changed.length) return '<div class="empty">No packet moved under these thresholds.</div>';
+  return `
+    <table>
+      <thead><tr><th>Packet</th><th>Was</th><th>Would be</th><th>Flags</th></tr></thead>
+      <tbody>
+        ${res.changed
+          .map(
+            (p) => `
+          <tr>
+            <td><strong>${esc(p.packetId)}</strong></td>
+            <td>${decisionBadge(p.baselineDecision)}</td>
+            <td>${decisionBadge(p.decision)}${p.decision !== p.baselineDecision ? ' <span class="badge edge">Changed</span>' : ''}</td>
+            <td><div class="inline-list">${p.flags.map((id) => `<span class="badge flag">${esc(id)}</span>`).join('') || '<span class="faint">—</span>'}</div></td>
+          </tr>`,
+          )
+          .join('')}
+      </tbody>
+    </table>`;
 }
 
 /* ------------------------------------------------------------------ *
@@ -1138,6 +1265,28 @@ document.addEventListener('click', (event) => {
         /* Sidebar counts are decorative; the views load their own data. */
       }
       navigate();
+    })();
+    return;
+  }
+
+  const wiBtn = target.closest('[data-action="whatif"]');
+  if (wiBtn) {
+    const box = document.getElementById('whatif-results');
+    const ceilingM = /** @type {HTMLInputElement} */ (document.getElementById('wi-ceiling'))?.value.trim();
+    const loss = /** @type {HTMLInputElement} */ (document.getElementById('wi-loss'))?.value.trim();
+    const months = /** @type {HTMLInputElement} */ (document.getElementById('wi-months'))?.value.trim();
+    if (box) box.innerHTML = '<div class="loading" style="padding:24px 0"><div class="spinner"></div></div>';
+    (async () => {
+      try {
+        const q = new URLSearchParams({ version: state.candidate });
+        if (ceilingM) q.set('tivCeiling', String(Number(ceilingM) * 1e6));
+        if (loss) q.set('lossRatioCeilingPct', loss);
+        if (months) q.set('maxMonthsAhead', months);
+        const res = await api(`/api/whatif?${q}`);
+        if (box) box.innerHTML = whatifResults(res);
+      } catch (err) {
+        if (box) box.innerHTML = `<div class="error">${esc(/** @type {Error} */ (err).message)}</div>`;
+      }
     })();
     return;
   }

@@ -1314,6 +1314,61 @@ details.changes ul {
 }
 
 /* ==========================================================================
+   Lab instruments: calibration bars, what-if form
+   ========================================================================== */
+
+.cal-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+  font-size: 12.5px;
+}
+
+.cal-range {
+  font-family: var(--mono);
+  width: 62px;
+  flex-shrink: 0;
+  color: var(--ink-soft);
+}
+
+.cal-track {
+  flex: 1;
+  height: 8px;
+  min-width: 40px;
+  background: var(--inset-deep);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cal-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 4px;
+}
+
+.cal-stat {
+  font-family: var(--mono);
+  width: 118px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.whatif-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 14px;
+}
+
+.whatif-form label.field input {
+  width: 150px;
+}
+
+/* ==========================================================================
    Narrow screens: sidebar becomes a top strip
    ========================================================================== */
 
@@ -1346,12 +1401,94 @@ details.changes ul {
     display: none;
   }
 
+  /* Small-screen readability: tighter type, scroll-safe tables. Cards become
+     the scroll container so wide ledger tables stay usable without breaking
+     the layout. */
   main {
-    padding: 22px 18px 72px;
+    padding: 20px 14px 64px;
+  }
+
+  .view-head {
+    margin-bottom: 18px;
+  }
+
+  .view-head h2 {
+    font-size: 25px;
+  }
+
+  .card {
+    padding: 16px 14px;
+    overflow-x: auto;
+  }
+
+  table {
+    font-size: 12.5px;
+    min-width: 560px;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  .verdict {
+    padding: 16px;
+  }
+
+  .verdict-title {
+    font-size: 18px;
+  }
+
+  .metric-cand {
+    font-size: 25px;
+  }
+
+  .about-hero h2 {
+    font-size: 30px;
+  }
+
+  .welcome {
+    margin: 24px auto;
+    padding: 26px 22px;
+  }
+
+  .welcome h2 {
+    font-size: 30px;
+  }
+
+  .whatif-form label.field {
+    flex: 1 1 140px;
+  }
+
+  .whatif-form label.field input {
+    width: 100%;
+  }
+
+  .review-actions button {
+    flex: 1 1 40%;
+  }
+
+  .gate-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .cal-stat {
+    width: 96px;
   }
 
   .crumbs, .footer {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .crumbs {
+    font-size: 12px;
+  }
+
+  .synthetic-banner {
+    font-size: 11px;
+    text-align: center;
+    padding: 8px 14px;
   }
 }
