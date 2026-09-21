@@ -1,0 +1,1 @@
+{"configurations": [{"name": "lab", "port": 5050, "runtimeArgs": ["src/server.js"], "runtimeExecutable": "node"}], "version": "0.0.1"}
