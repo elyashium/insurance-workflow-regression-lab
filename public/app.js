@@ -952,12 +952,12 @@ function queueItem(item) {
         : ''}
 
       <form class="review-form" data-review="${esc(item.packetId)}" data-run="${esc(item.runId)}">
-        <textarea name="note" placeholder="Add underwriter notes or rationale..."></textarea>
+        <textarea name="note" placeholder="Rationale..."></textarea>
         <div class="review-actions">
-          <input type="text" name="reviewer" placeholder="Underwriter Name" value="${esc(localStorage.getItem('iwrl-reviewer') ?? '')}" required />
-          <button type="submit" class="primary" value="approve" name="decision">Approve Policy</button>
-          <button type="submit" class="danger" value="decline" name="decision">Decline Policy</button>
-          <button type="submit" value="needs-info" name="decision">Request More Information</button>
+          <input type="text" name="reviewer" placeholder="Your name" value="${esc(localStorage.getItem('iwrl-reviewer') ?? '')}" required />
+          <button type="submit" class="primary" value="approve" name="decision">Approve</button>
+          <button type="submit" class="danger" value="decline" name="decision">Decline</button>
+          <button type="submit" value="needs-info" name="decision">Request info</button>
         </div>
       </form>
     </div>`;
