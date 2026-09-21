@@ -253,6 +253,20 @@ async function loadViewData() {
       state.selectedKey = null;
       break;
     }
+    case 'about': {
+      // About stays readable before loading; once loaded it tells the story
+      // with live numbers from the real scorecard.
+      if (!state.ready) {
+        state.data = null;
+        break;
+      }
+      const [packets, cmp] = await Promise.all([
+        api('/api/packets'),
+        api(`/api/compare?baseline=${encodeURIComponent(state.meta.defaultComparison.baseline)}&candidate=${encodeURIComponent(state.meta.defaultComparison.candidate)}`),
+      ]);
+      state.data = { packets, cmp };
+      break;
+    }
     default:
       state.data = null;
   }
@@ -301,7 +315,7 @@ function renderView() {
     case 'submissions': return renderSubmissions();
     case 'packet': return renderPacket();
     case 'review': return renderReview();
-    case 'about': return renderAbout();
+    case 'about': return renderAbout(state.data);
     default: return renderCompare();
   }
 }
@@ -986,102 +1000,123 @@ function queueItem(item) {
  * View: About
  * ------------------------------------------------------------------ */
 
-function renderAbout() {
+function renderAbout(data) {
+  const diff = data?.cmp?.diff ?? null;
+  const packetCount = Array.isArray(data?.packets) ? data.packets.length : null;
+  const versionCount = state.meta?.versions?.length ?? null;
+
+  const stats = diff && packetCount != null ? `
+    <div class="stat-strip">
+      ${stat(packetCount, 'Submissions replayed')}
+      ${stat(versionCount ?? '–', 'Workflow versions')}
+      ${stat(diff.regressions.length, 'Fields blocked')}
+      ${stat(diff.improvements.length, 'Fields improved')}
+    </div>` : '';
+
+  const exhibit = diff && diff.regressions.length ? `
+    <div class="card">
+      <div class="eyebrow">Exhibit A — live from the scorecard</div>
+      <h3>The two invented values</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Baseline read</th>
+            <th>Candidate inferred</th>
+            <th class="num">Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${diff.regressions.map((r) => `
+            <tr>
+              <td><strong>${esc(r.packetId)} &middot; ${friendlyFieldName(r.key)}</strong><br /><span class="faint">Truth: ${value(r.expected)}</span></td>
+              <td class="val-good">${value(r.baselineValue)} ✓</td>
+              <td class="val-bad">${value(r.candidateValue)} ✗</td>
+              <td class="num conf low">${(r.candidateConfidence * 100).toFixed(0)}% &middot; ${esc(r.candidateMethod)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : '';
+
+  const exhibitCta = !diff ? `
+    <div class="card exhibit-cta">
+      <div>
+        <strong>See it on live data.</strong><br />
+        <span class="faint">Load the corpus to replay the exhibit above from the real scorecard.</span>
+      </div>
+      <button class="primary" data-action="load">Load evaluation data</button>
+    </div>` : '';
+
   return render(`
     <div class="about-hero">
-      <h2>Why Aggregate Accuracy Lies</h2>
-      <p class="lead">
-        A model or extraction pipeline can gain three points of average accuracy while quietly hallucinating values into fields that brokers deliberately left blank.
-      </p>
+      <div class="eyebrow">Why this exists</div>
+      <h2>The average lied.</h2>
+      <p class="lead">v2 was more accurate on every headline metric — and still unshippable. It filled in two fields a broker deliberately left blank, and nothing errored.</p>
     </div>
 
-    <div class="about-quote-box">
-      <blockquote>
-        &ldquo;The release gate is not the average. It is whether any field that used to be right became wrong. A better average does not buy back a regression.&rdquo;
-      </blockquote>
-      <cite>Automated Pipeline Verification Principle</cite>
+    ${stats}
+    ${exhibit}
+    ${exhibitCta}
+
+    <div class="card">
+      <div class="eyebrow">How a run works</div>
+      <h3>Five stages, one trace</h3>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Extract</h4></div>
+        <p class="trace-summary">Every value cites its document, line, and method — plus a confidence.</p>
+      </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Reconcile</h4></div>
+        <p class="trace-summary">Duplicates removed, late endorsements applied, schedule footed. Every adjustment recorded, never silent.</p>
+      </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Apply guidelines</h4></div>
+        <p class="trace-summary">Five deterministic checks produce answers. Thresholds are illustrative, and say so.</p>
+      </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Detect conflicts</h4></div>
+        <p class="trace-summary">Four ways the documents disagree with each other — reasons to distrust any answer.</p>
+      </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Route</h4></div>
+        <p class="trace-summary">Quote, decline, or escalate to a human with a named reason. No silent guesses.</p>
+      </div>
     </div>
 
-    <div class="about-grid">
-      <div class="about-card">
-        <div class="about-card-number">01 / INTEGRITY</div>
-        <h4>The Problem</h4>
-        <p>
-          Standard model evaluations rely on macro metrics like F1 or average accuracy. In automated insurance workflows, an invented value raises no syntax errors and triggers no exceptions &mdash; it silently distorts pricing and downstream underwriting.
-        </p>
-      </div>
-
-      <div class="about-card">
-        <div class="about-card-number">02 / REPLAY</div>
-        <h4>Deterministic Replay</h4>
-        <p>
-          By evaluating candidate versions against the exact same submission packets and field-level ground truth, we isolate changes in heuristics, threshold tuning, and prompt revisions with zero confounding variance.
-        </p>
-      </div>
-
-      <div class="about-card">
-        <div class="about-card-number">03 / PROVENANCE</div>
-        <h4>Character Citation</h4>
-        <p>
-          Every extracted value links directly to its source document coordinates and extraction method. A guess inferred from surrounding prose is never rendered like an explicit read from a table.
-        </p>
-      </div>
+    <div class="gate-strip">
+      <code>regressions.length === 0 ? 'clean' : 'regressed'</code>
+      <span>A better average never buys back a lost field.</span>
     </div>
 
     <div class="card">
-      <h3>Automated Decision Architecture</h3>
-      <p class="card-note">How workflows triage submissions into definitive actions or human review:</p>
-      <div class="grid-2" style="margin-top:14px">
-        <div class="reason">
-          <span class="reason-kind">Auto-Quote</span>
-          <strong>High Confidence &amp; Within Risk Appetite</strong><br />
-          All required fields extracted with verified confidence and validated against risk guidelines.
-        </div>
-        <div class="reason">
-          <span class="reason-kind">Auto-Decline</span>
-          <strong>Explicit Guideline Disqualification</strong><br />
-          Submission clearly exceeds policy limits (e.g. maximum insured value or historical loss ratio ceiling).
-        </div>
-        <div class="reason">
-          <span class="reason-kind">Human Review</span>
-          <strong>Unreadable Fields or Conflicting Documents</strong><br />
-          Data was illegible or contradictory across documents, safely escalating to an underwriter.
-        </div>
-        <div class="reason">
-          <span class="reason-kind">Synthetic Test Lab</span>
-          <strong>Safe Demonstration Data</strong><br />
-          All submissions, insured entities, loss histories, and rule thresholds are synthetic test assets.
-        </div>
+      <div class="eyebrow">Where this goes</div>
+      <h3>Four steps, same scorecard</h3>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Real corpus</h4></div>
+        <p class="trace-summary">Swap synthetic packets for labelled production documents. The diff, the null scoring, and the gate carry over unchanged.</p>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>Where This Goes</h3>
-      <p class="card-note">The harness is the product surface. Each step below slots in without changing the scorecard.</p>
-      <div class="grid-2" style="margin-top:14px">
-        <div class="reason">
-          <span class="reason-kind">Step 01 — Real corpus</span>
-          <strong>Swap synthetic packets for labelled production documents.</strong><br />
-          The diff, the null scoring, and the gate carry over unchanged. Labelling is the real work — budget for it first.
-        </div>
-        <div class="reason">
-          <span class="reason-kind">Step 02 — Model profile</span>
-          <strong>Add a model-backed extractor as a fourth version.</strong><br />
-          Versions are config, so the new profile diffs against the old ones on day one — including its invented-value rate.
-        </div>
-        <div class="reason">
-          <span class="reason-kind">Step 03 — CI gate</span>
-          <strong>Run the diff on every prompt, model, or rule change.</strong><br />
-          A change that loses a previously correct field fails the build. That is the whole release policy.
-        </div>
-        <div class="reason">
-          <span class="reason-kind">Step 04 — Close the loop</span>
-          <strong>Feed reviewer overrides back into the guidelines.</strong><br />
-          A rule overturned five times is a wrong rule. The review log already records the evidence.
-        </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Model profile</h4></div>
+        <p class="trace-summary">Add a model-backed extractor as a fourth version. Versions are config, so it diffs against the old ones on day one.</p>
+      </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>CI gate</h4></div>
+        <p class="trace-summary">Replay the corpus on every prompt, model, or rule change. A lost field fails the build.</p>
+      </div>
+      <div class="trace-step">
+        <div class="trace-head"><h4>Close the loop</h4></div>
+        <p class="trace-summary">Feed reviewer overrides back into the guidelines. A rule overturned five times is a wrong rule.</p>
       </div>
     </div>
   `);
+}
+
+/**
+ * @param {number|string} num
+ * @param {string} label
+ */
+function stat(num, label) {
+  return `<div class="stat"><div class="stat-num">${num}</div><div class="stat-label">${esc(label)}</div></div>`;
 }
 
 /* ------------------------------------------------------------------ *

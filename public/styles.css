@@ -54,12 +54,10 @@
   --blue: #35648f;
   --plum: #7a4a6e;
 
-  /* Fonts.
-     Display stand-in for Typelab's Zephyr (archived 2021, unlicensable — no
-     webfont exists): Bodoni Moda, same high-contrast Didone spirit, always set
-     in caps to honour Zephyr's uppercase-only constraint. One-line swap if the
-     real face is ever licensed. Body is Violet Sans (single weight). */
-  --display: "Bodoni Moda", Georgia, "Times New Roman", serif;
+  /* Fonts. Violet Sans throughout (single weight — heavier weights
+     synthesize); JetBrains Mono for data and code. Georgia italic for the
+     pull-quote only. */
+  --serif: Georgia, "Times New Roman", serif;
   --serif: Georgia, "Times New Roman", serif;
   --sans: "Violet Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
@@ -104,11 +102,10 @@ a:hover {
 h1, h2, h3, h4 {
   margin: 0;
   color: var(--ink);
-  font-family: var(--display);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.015em;
-  line-height: 1.12;
+  font-family: var(--sans);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
 }
 
 code, .mono {
@@ -152,14 +149,14 @@ code, .mono {
   font-size: 19px;
   line-height: 1.2;
   color: var(--green-deep);
-  font-family: var(--display);
+  font-family: var(--sans);
 }
 
 .sidebar h1 {
-  font-family: var(--display);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 .brand-sub {
@@ -592,7 +589,7 @@ button[disabled] {
 .verdict-icon {
   font-size: 20px;
   line-height: 1;
-  font-family: var(--display);
+  font-family: var(--sans);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -617,10 +614,9 @@ button[disabled] {
 .verdict.regressed .verdict-status { color: var(--red-deep); }
 
 .verdict-title {
-  font-family: var(--display);
-  text-transform: uppercase;
+  font-family: var(--sans);
   font-size: 21px;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: -0.015em;
   margin-bottom: 4px;
 }
@@ -682,7 +678,7 @@ button[disabled] {
 
 .metric-cand {
   color: var(--ink);
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 29px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -1016,87 +1012,84 @@ mark.evidence {
 }
 
 .about-hero h2 {
-  font-size: 40px;
-  font-weight: 500;
-  line-height: 1.15;
-  margin-bottom: 12px;
-}
-
-.about-hero p.lead {
-  font-size: 17px;
-  color: var(--ink-soft);
-  line-height: 1.5;
-  max-width: 68ch;
-}
-
-.about-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-bottom: 26px;
-}
-@media (max-width: 900px) {
-  .about-grid { grid-template-columns: 1fr; }
-}
-
-.about-card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-}
-
-.about-card-number {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--green-deep);
+  font-size: 38px;
   margin-bottom: 10px;
 }
 
-.about-card h4 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.about-card p {
-  font-size: 13.5px;
+.about-hero p.lead {
+  font-size: 16px;
   color: var(--ink-soft);
-  line-height: 1.55;
-  margin: 0;
+  line-height: 1.5;
+  max-width: 62ch;
 }
 
-.about-quote-box {
-  background: var(--inset);
+/* Live stat strip */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (max-width: 700px) {
+  .stat-strip { grid-template-columns: repeat(2, 1fr); }
+}
+
+.stat {
+  background: var(--card);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--green);
-  border-radius: var(--radius-md);
-  padding: 20px 24px;
-  margin: 24px 0;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
 }
 
-.about-quote-box blockquote {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: 19px;
-  font-style: italic;
-  line-height: 1.45;
-}
-
-.about-quote-box cite {
-  display: block;
-  margin-top: 8px;
+.stat-num {
   font-family: var(--sans);
-  font-size: 11.5px;
-  font-style: normal;
-  color: var(--ink-soft);
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat-label {
+  margin-top: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+/* Gate formula strip */
+.gate-strip {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--green-deep);
+  color: #f2edda;
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  margin-bottom: 20px;
+}
+
+.gate-strip code {
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.gate-strip span {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* Exhibit CTA (pre-load) */
+.exhibit-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 /* ==========================================================================
@@ -1181,7 +1174,7 @@ ul.plain li {
 }
 
 .footer-mark {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 14px;
   color: var(--green-deep);
 }
