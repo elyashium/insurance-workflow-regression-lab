@@ -476,7 +476,15 @@ class NotFound extends Error {
   }
 }
 
-export const server = createServer(async (req, res) => {
+/**
+ * The request handler, exported for serverless targets (see `api/index.js`).
+ * Locally it serves both the JSON API and the static frontend; on Vercel the
+ * static assets come from the CDN and only the `/api/*` branch runs.
+ *
+ * @param {import('node:http').IncomingMessage} req
+ * @param {import('node:http').ServerResponse} res
+ */
+export async function handleRequest(req, res) {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
 
   try {
