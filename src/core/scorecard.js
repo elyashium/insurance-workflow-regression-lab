@@ -238,6 +238,38 @@ export function compare(baseline, candidate) {
   const baseSummary = summarize(baseline);
   const candSummary = summarize(candidate);
 
+  // Slice the movement by planted edge case. Packets carry their edge-case
+  // tags, so every moved field is attributed to each tag on its packet. A
+  // packet with three tags counts in three slices — slices overlap by design
+  // and are diagnostic, not additive. Only slices with movement are reported.
+  /** @type {Map<string, {slice: string, packets: Set<string>, regressions: number, improvements: number}>} */
+  const sliceMap = new Map();
+  for (const p of packets) {
+    if (!p.movedFields.length) continue;
+    const tags = p.edgeCases.length ? p.edgeCases : ['none'];
+    for (const tag of tags) {
+      let s = sliceMap.get(tag);
+      if (!s) {
+        s = { slice: tag, packets: new Set(), regressions: 0, improvements: 0 };
+        sliceMap.set(tag, s);
+      }
+      s.packets.add(p.packetId);
+      for (const m of p.movedFields) {
+        if (m.candidateCorrect) s.improvements++;
+        else s.regressions++;
+      }
+    }
+  }
+  const slices = [...sliceMap.values()]
+    .map((s) => ({
+      slice: s.slice,
+      packets: s.packets.size,
+      regressions: s.regressions,
+      improvements: s.improvements,
+      net: s.improvements - s.regressions,
+    }))
+    .sort((a, b) => b.regressions - a.regressions || b.improvements - a.improvements || (a.slice < b.slice ? -1 : 1));
+
   return {
     baselineVersionId: baseline[0]?.run.versionId ?? null,
     candidateVersionId: candidate[0]?.run.versionId ?? null,
@@ -255,12 +287,51 @@ export function compare(baseline, candidate) {
     regressions,
     improvements,
     packets,
+    slices,
     /**
      * The gate. A candidate that loses even one previously-correct field does
      * not ship on the strength of a better average.
      */
     verdict: regressions.length === 0 ? 'clean' : 'regressed',
   };
+}
+
+/**
+ * Confidence calibration: do the extractor's confidences mean what they say?
+ *
+ * Every scored field (value AND nulls — an asserted absence carries a
+ * confidence too) is bucketed by the confidence it was reported with, and
+ * each bucket reports its empirical accuracy. A healthy extractor is
+ * diagonal: the 0.9+ bucket is right ~95% of the time, the sub-0.6 bucket is
+ * little better than a coin flip. The bands align with the pipeline's own
+ * cutoffs: 0.6 is the low-confidence floor, 0.50 is what back-fill emits.
+ */
+const CALIBRATION_BANDS = [
+  { lo: 0, hi: 0.6, label: '<0.6' },
+  { lo: 0.6, hi: 0.8, label: '0.6–0.8' },
+  { lo: 0.8, hi: 0.9, label: '0.8–0.9' },
+  { lo: 0.9, hi: 1.0001, label: '≥0.9' },
+];
+
+/**
+ * @param {{run: any, score: any}[]} scored
+ * @returns {{range: string, n: number, correct: number, accuracy: number | null}[]}
+ */
+export function calibration(scored) {
+  const bands = CALIBRATION_BANDS.map((b) => ({ ...b, n: 0, correct: 0 }));
+  for (const s of scored) {
+    for (const f of s.score.fields) {
+      const band = bands.find((b) => f.confidence >= b.lo && f.confidence < b.hi) ?? bands[bands.length - 1];
+      band.n++;
+      if (f.correct) band.correct++;
+    }
+  }
+  return bands.map((b) => ({
+    range: b.label,
+    n: b.n,
+    correct: b.correct,
+    accuracy: b.n ? b.correct / b.n : null,
+  }));
 }
 
 /**

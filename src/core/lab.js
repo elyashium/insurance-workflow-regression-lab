@@ -10,7 +10,8 @@
 import { loadAllPackets, loadGroundTruth } from './packets.js';
 import { getVersion } from './versions.js';
 import { runPacket } from './runner.js';
-import { scoreRun, summarize, compare } from './scorecard.js';
+import { scoreRun, summarize, compare, calibration } from './scorecard.js';
+import { runDrills as scoreDrills } from './drills.js';
 
 /**
  * Run every packet through one version and score the results.
@@ -41,6 +42,7 @@ export async function runSuite(versionId, preloaded = {}) {
     guidelines: version.guidelines,
     scored,
     summary: summarize(scored),
+    calibration: calibration(scored),
   };
 }
 
@@ -76,6 +78,117 @@ export async function runComparison(baselineId, candidateId) {
   };
 }
 
+/** Guideline keys a what-if run is allowed to move, with sane bounds. */
+const WHATIF_LIMITS = {
+  tivCeiling: { min: 1_000_000, max: 1_000_000_000 },
+  lossRatioCeilingPct: { min: 0, max: 100 },
+  maxMonthsAhead: { min: 1, max: 36 },
+};
+
+/**
+ * @param {any} value
+ * @param {string} name
+ */
+function badWhatIf(value, name) {
+  const err = new Error(`Invalid what-if override ${name}: ${JSON.stringify(value)}.`);
+  err.status = 400;
+  return err;
+}
+
+/**
+ * Re-run one version with hypothetical guideline thresholds.
+ *
+ * This is a lab instrument, not a version: nothing is persisted, no review
+ * attaches to it, and the version id is unchanged. It answers "what would
+ * move if the ceiling were $X?" by actually re-running the pipeline, not by
+ * editing the scorecard.
+ *
+ * @param {string} versionId
+ * @param {Record<string, any>} overrides
+ * @returns {Promise<any>}
+ */
+export async function runWhatIf(versionId, overrides = {}) {
+  const version = getVersion(versionId);
+
+  /** @type {Record<string, number>} */
+  const clean = {};
+  for (const [key, value] of Object.entries(overrides)) {
+    const limits = WHATIF_LIMITS[key];
+    const n = Number(value);
+    if (!limits || !Number.isFinite(n) || n < limits.min || n > limits.max) {
+      throw badWhatIf(value, key);
+    }
+    clean[key] = n;
+  }
+
+  const hypothetical = {
+    ...version,
+    guidelines: { ...version.guidelines, ...clean },
+  };
+
+  // Fresh corpus copies: the runner annotates as it reconciles.
+  const baseRuns = (await loadAllPackets()).map((p) => runPacket(p, version));
+  const hypoRuns = (await loadAllPackets()).map((p) => runPacket(p, hypothetical));
+
+  /** @param {any} run */
+  const row = (run) => ({
+    packetId: run.packetId,
+    packetLabel: run.packetLabel,
+    decision: run.routing.decision,
+    abstained: run.routing.abstained,
+    flags: run.checks.filter((c) => c.status === 'flag').map((c) => c.id),
+    computedTiv: run.fields.computedTiv?.value ?? null,
+  });
+
+  const changed = [];
+  const packets = hypoRuns.map((run, i) => {
+    const base = row(baseRuns[i]);
+    const hypo = row(run);
+    const moved =
+      base.decision !== hypo.decision ||
+      base.abstained !== hypo.abstained ||
+      JSON.stringify(base.flags) !== JSON.stringify(hypo.flags);
+    if (moved) changed.push({ ...hypo, baselineDecision: base.decision, baselineFlags: base.flags });
+    return hypo;
+  });
+
+  return {
+    versionId,
+    versionName: version.name,
+    hypothetical: true,
+    overrides: clean,
+    guidelines: hypothetical.guidelines,
+    packets,
+    changed,
+  };
+}
+
+/**
+ * Mutation-test the gate between two versions: inject three canonical
+ * failures into the candidate and report whether the diff catches each one.
+ *
+ * @param {string} baselineId
+ * @param {string} candidateId
+ * @returns {Promise<any>}
+ */
+export async function runDrills(baselineId, candidateId) {
+  const groundTruth = await loadGroundTruth();
+  const baseline = await runSuite(baselineId, {
+    groundTruth,
+    packets: await loadAllPackets(),
+  });
+  const candidate = await runSuite(candidateId, {
+    groundTruth,
+    packets: await loadAllPackets(),
+  });
+
+  return {
+    baselineVersionId: baselineId,
+    candidateVersionId: candidateId,
+    drills: scoreDrills(baseline.scored, candidate.scored),
+  };
+}
+
 /**
  * Strip the heavy per-run payloads out of a suite for API responses. The full
  * run, with its trace and evidence spans, is fetched one at a time.
@@ -90,6 +203,7 @@ function publicSuite(suite) {
     changes: suite.changes,
     guidelines: suite.guidelines,
     summary: suite.summary,
+    calibration: suite.calibration,
     packets: suite.scored.map((s) => ({
       packetId: s.run.packetId,
       packetLabel: s.run.packetLabel,

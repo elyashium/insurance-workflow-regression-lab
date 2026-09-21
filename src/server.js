@@ -21,7 +21,7 @@ import { pathToFileURL } from 'node:url';
 import { PUBLIC_DIR } from './paths.js';
 import { loadAllPackets, loadPacket, loadGroundTruth, listPacketIds } from './core/packets.js';
 import { VERSIONS, DEFAULT_COMPARISON, getVersion } from './core/versions.js';
-import { runSuite } from './core/lab.js';
+import { runSuite, runWhatIf, runDrills } from './core/lab.js';
 import { compare } from './core/scorecard.js';
 import { PRICING } from './core/cost.js';
 import {
@@ -175,6 +175,7 @@ async function route(url, req) {
         changes: suite.changes,
         guidelines: suite.guidelines,
         summary: suite.summary,
+        calibration: suite.calibration,
         packets: suite.scored.map((/** @type {any} */ s) => ({
           ...packetRow(s),
           correct: s.score.correct,
@@ -263,6 +264,23 @@ async function route(url, req) {
     return { status: 201, data: { review } };
   }
 
+  if (method === 'GET' && path === '/api/drills') {
+    const baselineId = url.searchParams.get('baseline') ?? DEFAULT_COMPARISON.baseline;
+    const candidateId = url.searchParams.get('candidate') ?? DEFAULT_COMPARISON.candidate;
+    return { data: await runDrills(baselineId, candidateId) };
+  }
+
+  if (method === 'GET' && path === '/api/whatif') {
+    const versionId = url.searchParams.get('version') ?? DEFAULT_COMPARISON.candidate;
+    /** @type {Record<string, any>} */
+    const overrides = {};
+    for (const key of ['tivCeiling', 'lossRatioCeilingPct', 'maxMonthsAhead']) {
+      const raw = url.searchParams.get(key);
+      if (raw != null && raw !== '') overrides[key] = Number(raw);
+    }
+    return { data: await runWhatIf(versionId, overrides) };
+  }
+
   return null;
 }
 
@@ -298,6 +316,7 @@ function suiteHeader(suite) {
     changes: suite.changes,
     guidelines: suite.guidelines,
     summary: suite.summary,
+    calibration: suite.calibration,
   };
 }
 
