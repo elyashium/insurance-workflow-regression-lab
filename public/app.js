@@ -259,11 +259,21 @@ function render(html) {
   if (mainEl) mainEl.innerHTML = html;
 }
 
+const CRUMB_LABELS = {
+  compare: 'Scorecard',
+  submissions: 'Submissions',
+  packet: 'Submission detail',
+  review: 'Review Queue',
+  about: 'About',
+};
+
 function renderShell() {
   for (const a of document.querySelectorAll('#nav a')) {
     const view = a.getAttribute('data-view');
     a.classList.toggle('active', view === state.view || (view === 'submissions' && state.view === 'packet'));
   }
+  const crumb = document.getElementById('crumb-view');
+  if (crumb) crumb.textContent = CRUMB_LABELS[state.view] ?? 'Scorecard';
 }
 
 function renderView() {
@@ -1139,6 +1149,17 @@ window.addEventListener('hashchange', navigate);
   const pricingEl = document.getElementById('footer-pricing');
   if (pricingEl) {
     pricingEl.textContent = state.meta.pricing.label;
+  }
+
+  const versionsEl = document.getElementById('sb-versions');
+  if (versionsEl) versionsEl.textContent = String(state.meta.versions.length);
+
+  try {
+    const packets = await api('/api/packets');
+    const packetsEl = document.getElementById('sb-packets');
+    if (packetsEl && Array.isArray(packets)) packetsEl.textContent = String(packets.length);
+  } catch {
+    /* Sidebar counts are decorative; the views load their own data. */
   }
 
   if (!location.hash) location.hash = '#/compare';
