@@ -208,14 +208,15 @@ planted and why — visible in the UI at the bottom of the packet view.
 
 ## The versions
 
-| | v1 — strict regex | v2 — tolerant heuristic | v2.1 — back-fill removed |
-| --- | --- | --- | --- |
-| Label vocabulary | standard labels only | widened aliases | widened aliases |
-| Currency | must be written in full | bare digits, K/M/B shorthand | same as v2 |
-| Documents in scope | application, schedule, loss run | + broker email, endorsements | + broker email, endorsements |
-| Address matching | exact string | normalised + fuzzy in-postcode | normalised + fuzzy in-postcode |
-| Blank fields | left blank | **inferred from nearby prose** | left blank |
-| Appetite ceiling | $40M | $50M | $50M |
+| | v1 — strict regex | v2 — tolerant heuristic | v2.1 — back-fill removed | v3 — model extraction |
+| --- | --- | --- | --- | --- |
+| Label vocabulary | standard labels only | widened aliases | widened aliases | model reads all five documents |
+| Currency | must be written in full | bare digits, K/M/B shorthand | same as v2 | model normalises to whole dollars |
+| Documents in scope | application, schedule, loss run | + broker email, endorsements | + broker email, endorsements | all five, endorsement as context |
+| Address matching | exact string | normalised + fuzzy in-postcode | normalised + fuzzy in-postcode | model reads |
+| Blank fields | left blank | **inferred from nearby prose** | left blank | left blank (instructed null) |
+| Appetite ceiling | $40M | $50M | $50M | $50M |
+| Cost | simulated | simulated | simulated | **metered** (tokens × published rate) |
 
 v2 bundles seven changes into one release — which is the realistic failure mode.
 Six of them are improvements. The seventh invents data. Because they shipped
@@ -223,10 +224,72 @@ together, the aggregate metrics net out in v2's favour and the release looks goo
 
 v2.1 is the fix: v2 with back-fill switched off and nothing else touched.
 
+v3 is the same argument from the other direction: same pipeline and same
+guidelines as v2, but a chat model (Groq) does the reading instead of the
+heuristic extractor — instructed to report null where the packet is blank.
+It reads the corpus 226/226 for about a cent of metered spend.
+
 A version is **data, not code** — an extraction profile plus a guideline config,
 traversed by one shared engine. There is no separate v1 parser and v2 parser to
 drift apart, so a difference in the scorecard is attributable to the configuration
-rather than to two implementations that were never quite the same.
+rather than to two implementations that were never quite the same. v3 is the
+proof: a model-backed profile is one entry in `versions.js`, and the scorecard,
+the gate, and the review queue do not change.
+
+---
+
+## Model-backed extraction
+
+v3 calls Groq's chat API (`openai/gpt-oss-120b` by default) with the packet
+documents and resolves every returned quote back to exact character offsets,
+so a model value carries the same evidence contract as a regex one. A quote
+that cannot be found verbatim is kept but distrusted (confidence halved,
+evidence null, noted) rather than dropped.
+
+Setup — keys never live in the repo:
+
+```bash
+# PowerShell
+$env:GROQ_API_KEY='gsk-...'
+# bash
+export GROQ_API_KEY='gsk-...'
+```
+
+A local `.env` file (`KEY=VALUE` lines, gitignored) works too. Optional:
+`GROQ_MODEL` (must have a published rate — unknown models are refused, not
+invented), `GROQ_CACHE=off` (bypass the cache), `GROQ_CONCURRENCY` (live calls
+in flight, default 2 — the free tier meters tokens per minute).
+
+Every response is cached under `data/.llm-cache/` (gitignored) keyed by the
+request hash. A cache hit returns before the key is even consulted, so seeded
+replays are deterministic, offline, and free. The integration suite runs the
+v3 block against the cache when no key is set, live when one is, and skips
+otherwise.
+
+Cost on v3 is **metered, not simulated**: tokens × Groq's published rate
+($0.15/1M in, $0.60/1M out, observed Sept 2026), recorded per run with the
+model name. The UI marks metered figures as metered.
+
+---
+
+## Robustness
+
+`GET /api/robustness?version=` replays a version on degraded copies of the
+corpus — synthetic OCR confusions, dropped punctuation, reflowed lines, and
+PDF page furniture — scored against the same ground truth. Values never move,
+only ink does, so any drop measures the reader. Deterministic by construction
+(seeded per packet and document). The scorecard shows it as a per-profile
+accuracy table for the candidate.
+
+---
+
+## Manifests
+
+Every suite carries a manifest: corpus hash (packets + ground truth as
+executed — perturbed runs hash differently), extractor-profile hash (any
+config change moves it), guidelines, and per-packet outcomes. Equal hashes
+mean bit-identical inputs. Shown truncated on the scorecard's version cards;
+full values in the suite payloads.
 
 ---
 
@@ -254,23 +317,29 @@ three versions and pins the behaviour the lab is actually claiming:
 That last pair is the point. The regression is asserted by identity, not by a
 threshold on an average, so the test fails if the lab ever stops catching it.
 
+The suite also covers the lab instruments (slices, calibration, drills,
+what-if, perturbations, manifests, the review auth gate, the Groq adapter's
+cache and metering). The model-backed v3 block runs live with `GROQ_API_KEY`,
+deterministically offline against a seeded `data/.llm-cache/`, and skips
+otherwise. CI (`.github/workflows/ci.yml`) runs the suite, the typecheck, and
+a server smoke test on Node 20 and 22.
+
 ---
 
-## Measured vs. simulated
+## Measured vs. simulated vs. metered
 
 The UI labels these differently everywhere, and so does this README.
 
-**Latency is measured.** Each stage is timed with `performance.now()`. The numbers
-are real wall-clock time for this machine and this corpus, and they are small
-because both extractors are local deterministic code.
+**Latency is measured.** Each stage is timed with `performance.now()`.
 
-**Cost is simulated.** Nothing here calls a model, so nothing here costs anything.
-The dollar figures are a token-equivalent estimate (characters read ÷ 4, priced at
-an invented rate) shown so the accuracy/cost trade-off is *visible* in the diff —
-more passes over more documents costs more. Every cost carries
-`simulated: true` in the API and a `SIMULATED` badge in the UI.
-**It is not any vendor's pricing and should not be read as a cost estimate for
-anything.**
+**Cost is simulated — unless it says metered.** The rule-based extractors are
+local deterministic code that costs nothing, so their dollar figures are a
+token-equivalent estimate at an invented rate, carrying `simulated: true` and
+a `SIMULATED` badge. v3's figures are the opposite: real tokens × Groq's
+published rate, carrying the model name and no simulated flag — about a cent
+for the whole corpus. **Neither is any vendor's pricing for your workload.**
+The simulated rate is invented; the metered rate was observed in Sept 2026
+and can change without notice.
 
 ---
 
@@ -292,11 +361,12 @@ anything.**
 - **Not integrated with anything.** No policy administration system, no form
   vendor, no data provider. There is no integration layer and no stub pretending
   to be one.
-- **Not an LLM system.** Both extractors are deterministic local code. That is a
-  deliberate scope choice — the subject here is the *harness*, and a harness you
+- **Mostly not an LLM system.** v1, v2, and v2.1 are deterministic local code -
+  deliberately, because the subject here is the *harness*, and a harness you
   can only test by paying for nondeterministic calls is a harder thing to reason
-  about. The engine is config-driven, so a model-backed profile is where a fourth
-  version would go.
+  about. v3 is the model-backed exception that proves the engine is
+  config-driven: same pipeline, same scorecard, quotes resolved to source
+  characters, responses cached so its replays are deterministic too.
 - **Not a claim about anyone else's product.** This is one person's small version
   of a reliability problem worth caring about — replay, field-level diffing, and a
   gate that doesn't let an average hide a regression. It is not a commentary on
@@ -347,6 +417,7 @@ value renders identically to a read one — unless you show the method.
 | `GET /api/compare?baseline=&candidate=` | the diff |
 | `GET /api/drills?baseline=&candidate=` | three fault drills against the gate (single-field, blank-fill, decoy-gains) |
 | `GET /api/whatif?version=&tivCeiling=&lossRatioCeilingPct=&maxMonthsAhead=` | re-run one version under hypothetical thresholds; nothing is saved |
+| `GET /api/robustness?version=` | clean vs. OCR/PDF-degraded accuracy for one version |
 | `GET /api/review-queue/:versionId` | abstained packets, no answer key |
 | `GET /api/reviews[?packet=]` | the append-only log |
 | `POST /api/reviews` | record one decision |

@@ -492,7 +492,7 @@ class NotFound extends Error {
  * key when LAB_API_KEY is set. Compared in constant time — a demo auth gate
  * should still not leak its secret one timing sample at a time.
  *
- * @param {import('node:http').IncomingMessage} req
+ * @param {{headers: Record<string, string | string[] | undefined>}} req
  * @returns {boolean}
  */
 export function authorized(req) {

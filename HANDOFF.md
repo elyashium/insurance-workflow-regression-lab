@@ -14,7 +14,7 @@ constraint that shaped the whole build, and it is asserted in the test suite.
 | | |
 | --- | --- |
 | Build | Complete. All deliverables on disk. |
-| Tests | **180 total, passing.** (Was 170; +10 for the lab instruments, below.) |
+| Tests | **199 total, passing, on Node 20 and 22.** (Was 170 at handoff; instruments + v3 + manifests + auth since.) |
 | Runtime dependencies | Zero. `npm install` downloads nothing. |
 | Verified on | Node v20.18.0, Windows 11 |
 | Not yet done | `.claude/launch.json`; UI never rendered in a browser |
@@ -84,6 +84,38 @@ API + UI + tests:
 Mobile got a pass in the same change: cards become the scroll container under
 860px so ledger tables stay usable on phones. No browser here — the small-screen
 CSS is reasoned, not eyeballed; confirm on a real phone.
+
+### Production pass (2026-09-21, second half)
+
+Weaknesses closed, in order:
+
+- **`npm test` on Node 22 was genuinely broken** — a bare `node --test test/`
+  directory arg loads as a module on 22 (MODULE_NOT_FOUND). `scripts/test.mjs`
+  now enumerates `test/*.test.js` explicitly (plus `fixtures.js`, whose
+  self-test the old directory scan picked up implicitly — that explained the
+  179-vs-180 counts). Green 199/199 on 20.18 and 22.19.
+- **Typecheck is green.** `scripts/typecheck.mjs` installs `tsc` +
+  `@types/node` into a temp dir per run (repo stays zero-dependency) and the
+  remaining JSDoc drift was fixed — including new src errors, not just tests.
+- **v3-llm, model-backed, live.** Groq `openai/gpt-oss-120b`, quotes resolved
+  to exact spans, instructed null-when-absent. First live run: **226/226 for
+  $0.011** — including PKT-002's blanks left blank. Responses cached under
+  `data/.llm-cache/` (gitignored); cache hits need no key and no network, so
+  replays are deterministic. Unknown models are refused, never costed.
+  `GROQ_API_KEY` lives in env/`.env` only — never committed. The key used for
+  seeding should be rotated (it appears in chat history).
+- **Robustness** (`perturb.js`, `/api/robustness`, scorecard card): seeded OCR
+  (`ocr-heavy` costs v1 ~5pts) and PDF layout noise (moves nothing — honest).
+- **Manifests** on every suite: corpus hash of what actually ran (perturbed
+  runs hash differently), profile hash, per-packet outcomes. Truncated hashes
+  on the scorecard version cards.
+- **Auth**: `LAB_API_KEY`, when set, gates `POST /api/reviews` (401, constant-
+  time compare); reads stay open. No user accounts by design — see the README.
+- **CI** (`.github/workflows/ci.yml`): Node 20.x + 22.x matrix, tests +
+  typecheck + server smoke test.
+- **Demo script** rewritten to 75 seconds, instruments included, with a
+  production-readiness answer for "what would this take live" (labelled corpus,
+  CI gate, calibration).
 
 ---
 

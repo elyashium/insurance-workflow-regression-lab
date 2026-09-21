@@ -529,15 +529,21 @@ test(
       assert.ok(typeof run.cost.model === 'string' && run.cost.model.length > 0);
       assert.ok(run.cost.usd >= 0);
       assert.ok(run.cost.inputTokens > 0, 'a model run that read nothing is a bug');
-      // Every value the model produced, including nulls, carries the method
-      // that produced it. computedTiv is derived downstream, not extracted.
-      for (const [name, f] of Object.entries(run.fields)) {
-        if (name === 'computedTiv') continue;
-        assert.equal(f.method, 'llm-extract');
+      // The four model-read scalars carry the method that produced them.
+      // lossRunTotalIncurred and lossCount are derived downstream
+      // (sum:/count:), exactly as in the deterministic engine.
+      for (const name of ['insuredName', 'receivedDate', 'requestedEffectiveDate', 'statedTiv']) {
+        assert.equal(run.fields[name].method, 'llm-extract');
       }
       for (const loc of run.resolution.locations) {
         for (const f of Object.values(loc.fields)) {
-          assert.equal(f.method, 'llm-extract');
+          // Read cells are llm-extract; cells the model left blank (correctly,
+          // on PKT-002 L2) are llm-miss. Anything else means the contract broke.
+          assert.ok(
+            f.method === 'llm-extract' || f.method === 'llm-miss',
+            `unexpected method ${f.method}`,
+          );
+          if (f.value == null) assert.ok(f.note, 'a null with no explanation is a guess in disguise');
         }
       }
     }
@@ -586,6 +592,16 @@ test('calibration buckets account for every scored field, and the diagonal holds
       suite(id).summary.total,
       `${id} left fields out of its calibration`,
     );
+    for (const b of cal) {
+      assert.ok(b.accuracy == null || (b.accuracy >= 0 && b.accuracy <= 1));
+      assert.equal(b.accuracy == null, b.n === 0);
+    }
+  }
+
+  // The diagonal (guesses worse than reads) is meaningful for imperfect
+  // readers. A perfect run fills every band at 1.0 — vacuous, and correctly so.
+  for (const id of DETERMINISTIC_IDS) {
+    const cal = suite(id).calibration;
     assert.ok(
       cal[0].accuracy < cal[3].accuracy,
       `${id} claims more for its guesses than its reads`,

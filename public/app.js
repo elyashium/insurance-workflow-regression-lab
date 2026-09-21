@@ -438,7 +438,7 @@ function renderCompare() {
 
       ${metric('Estimated Cost', cost(diff.summary.baseline.totalCostUsd), cost(diff.summary.candidate.totalCostUsd),
         deltaEl(d.totalCostUsd, cost, 'down-good'),
-        'Simulated')}
+        diff.summary.candidate.costIsSimulated ? 'Simulated' : 'Metered spans')}
     </div>
 
     ${diff.regressions.length ? regressionTable(diff.regressions, 'Regressions (Release Blockers)', 'regression-row',
@@ -632,6 +632,7 @@ function versionCard(suite) {
           <li>Max loss ratio ceiling: <strong>${esc(suite.guidelines.lossRatioCeilingPct)}%</strong></li>
           <li>Effective date lead window: <strong>${esc(suite.guidelines.maxMonthsAhead)} months</strong></li>
           <li>Address comparison mode: <strong>${esc(suite.guidelines.addressMatching)}</strong></li>
+          <li>Config hash: <strong class="mono">${esc((suite.manifest?.profileHash ?? '').slice(0, 12))}</strong> &middot; Corpus hash: <strong class="mono">${esc((suite.manifest?.corpusHash ?? '').slice(0, 12))}</strong></li>
         </ul>
       </details>
     </div>`;
@@ -726,8 +727,34 @@ function whatifCard(candidate) {
     </div>`;
 }
 
+/** @param {any} r */
+function robustnessCard(r) {
+  return `
+    <div class="card">
+      <h3>Robustness</h3>
+      <p class="card-note">${esc(r.versionName)} on degraded input, same ground truth. Clean accuracy ${pct(r.clean.accuracy)}.</p>
+      <table>
+        <thead><tr><th>Profile</th><th class="num">Accuracy</th><th class="num">Δ vs clean</th><th>Moved decisions</th></tr></thead>
+        <tbody>
+          ${r.profiles
+            .map(
+              (p) => `
+            <tr>
+              <td><strong>${esc(p.profile)}</strong><br /><span class="faint">${esc(p.description)}</span></td>
+              <td class="num">${pct(p.accuracy)}</td>
+              <td class="num ${p.deltaVsClean < -1e-9 ? 'val-bad' : ''}">${Math.abs(p.deltaVsClean) < 1e-9 ? '—' : `${p.deltaVsClean > 0 ? '+' : '−'}${pct(Math.abs(p.deltaVsClean))}`}</td>
+              <td>${p.decisionsMoved.length ? p.decisionsMoved.map((id) => `<span class="badge edge">${esc(id)}</span>`).join(' ') : '<span class="faint">—</span>'}</td>
+            </tr>`,
+            )
+            .join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
 /** @param {any} res */
 function whatifResults(res) {
+  if (!res.changed.length) return '<div class="empty">No packet moved under these thresholds.</div>';
   return `
     <table>
       <thead><tr><th>Packet</th><th>Was</th><th>Would be</th><th>Flags</th></tr></thead>
@@ -769,7 +796,7 @@ function renderSubmissions() {
       ${simpleMetric('Field Accuracy', pct(s.summary.accuracy), `${s.summary.correct} / ${s.summary.total} fields correct`)}
       ${simpleMetric('Human Review Rate', pct(s.summary.abstentionRate), `${s.summary.abstained} sent to review`)}
       ${simpleMetric('Average Latency', ms(s.summary.meanLatencyMs), 'Measured')}
-      ${simpleMetric('Estimated Cost', cost(s.summary.totalCostUsd), 'Simulated')}
+      ${simpleMetric('Estimated Cost', cost(s.summary.totalCostUsd), s.summary.costIsSimulated ? 'Simulated' : 'Metered')}
     </div>
 
     <div class="card">
@@ -863,7 +890,7 @@ function renderPacket() {
       ${simpleMetric('Insured Property Value', usd(run.fields.computedTiv?.value), `Stated on form: ${usd(run.fields.statedTiv?.value)}`)}
       ${simpleMetric('Field Accuracy', pct(score.accuracy), `${score.correct} / ${score.total} items`)}
       ${simpleMetric('Latency', ms(run.durationMs), 'Measured')}
-      ${simpleMetric('Cost', cost(run.cost.usd), `Simulated (${run.cost.passes} passes)`)}
+      ${simpleMetric('Cost', cost(run.cost.usd), run.cost.simulated ? `Simulated (${run.cost.passes} passes)` : `Metered · ${run.cost.model}`)}
     </div>
 
     <div class="doc-tabs">${tabs}</div>
