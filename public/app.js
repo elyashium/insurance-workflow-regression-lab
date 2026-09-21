@@ -69,7 +69,7 @@ function pct(n) {
   return `${(n * 100).toFixed(1)}%`;
 }
 
-/** @param {number} ms */
+/** @param {number} n */
 function ms(n) {
   return `${Number(n).toFixed(1)} ms`;
 }

@@ -28,7 +28,7 @@
  * @property {string} locId
  * @property {Record<string, ExtractedField>} fields
  * @property {import('./text.js').Span | null} sourceSpan
- * @property {boolean} isDuplicateOf     locId of the row this repeats, or null
+ * @property {string | null} isDuplicateOf  locId of the row this repeats, or null
  */
 
 /**
@@ -73,6 +73,7 @@
  * @property {string} detail
  * @property {Record<string, any>} inputs      the figures the rule ran on
  * @property {import('./text.js').Span[]} evidence
+ * @property {string} disclaimer               invented-threshold disclaimer
  */
 
 /**

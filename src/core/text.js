@@ -21,6 +21,7 @@
  * @property {string} name    display name, e.g. "sov.txt"
  * @property {string} text    full document text
  * @property {Line[]} lines
+ * @property {string} [label] human label assigned by packets.js after indexing
  */
 
 /**

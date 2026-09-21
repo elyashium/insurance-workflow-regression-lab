@@ -43,7 +43,7 @@ const BACKFILL_WINDOW_CHARS = 400;
 const EARLIEST_PLAUSIBLE_BUILD_YEAR = 1850;
 
 /**
- * @param {import('../core/packets.js').Packet} packet
+ * @param {import('../packets.js').Packet} packet
  * @param {string} docId
  */
 function getDoc(packet, docId) {

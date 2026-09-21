@@ -34,6 +34,7 @@ import { field } from './types.js';
  * @property {AppliedEndorsement[]} appliedEndorsements
  * @property {number | null} listedTiv     before any adjustment
  * @property {number | null} computedTiv   after every adjustment
+ * @property {number} unreadableSummands     schedule cells that could not be read
  * @property {string[]} adjustments        human-readable audit trail
  */
 
