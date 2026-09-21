@@ -252,7 +252,9 @@ test('both versions abstain on half the corpus, on almost entirely different pac
 
 test('the two versions abstain for different kinds of reason', () => {
   // v1's abstentions are mostly its own fault; v2's are mostly the packet's.
-  assert.deepEqual(reasonKinds('v1-regex', 'PKT-008'), ['NOT_READABLE']);
+  // PKT-008 carries both kinds at once, and the order is the order route()
+  // collects them in: what could not be read, then what does not reconcile.
+  assert.deepEqual(reasonKinds('v1-regex', 'PKT-008'), ['NOT_READABLE', 'UNRECONCILED']);
   assert.deepEqual(reasonKinds('v1-regex', 'PKT-007'), ['UNRECONCILED']);
 
   assert.deepEqual(reasonKinds('v2-heuristic', 'PKT-005'), ['UNRECONCILED']);
@@ -325,8 +327,15 @@ test('PKT-008: the messiest packet is the one where the tolerant version abstain
   // The argument cuts both ways, and the corpus has to contain the case that
   // cuts against v1 or the scorecard is just an advertisement for caution.
   assert.equal(runOf('v1-regex', 'PKT-008').routing.abstained, true);
-  assert.deepEqual(reasonKinds('v1-regex', 'PKT-008'), ['NOT_READABLE']);
+
+  // Two independent failures on one packet, which is the reason `reasons` is a
+  // list. v1 cannot read a required value, AND the schedule it did read does
+  // not foot to the stated total - it never removes the Basalt Ridge duplicate,
+  // so it over-counts by a whole campus. A reviewer needs both of those, not
+  // whichever one the router happened to find first.
+  assert.deepEqual(reasonKinds('v1-regex', 'PKT-008'), ['NOT_READABLE', 'UNRECONCILED']);
   assert.match(runOf('v1-regex', 'PKT-008').routing.reasons[0].detail, /L3\.buildingValue/);
+  assert.match(runOf('v1-regex', 'PKT-008').routing.reasons[1].detail, /CF-001/);
 
   const v2 = runOf('v2-heuristic', 'PKT-008');
   assert.equal(v2.routing.abstained, false);
