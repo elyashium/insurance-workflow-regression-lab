@@ -14,7 +14,7 @@ constraint that shaped the whole build, and it is asserted in the test suite.
 | | |
 | --- | --- |
 | Build | Complete. All deliverables on disk. |
-| Tests | **170 total — 168 passed, 2 failed, now fixed.** See below. |
+| Tests | **180 total, passing.** (Was 170; +10 for the lab instruments, below.) |
 | Runtime dependencies | Zero. `npm install` downloads nothing. |
 | Verified on | Node v20.18.0, Windows 11 |
 | Not yet done | `.claude/launch.json`; UI never rendered in a browser |
@@ -59,8 +59,31 @@ system. A threshold on an average would have sailed past it.
 node --test test/
 ```
 
-Expect **170 passing**. If anything else fails, the test names the packet and
+Expect **180 passing**. If anything else fails, the test names the packet and
 the field.
+
+### Lab instruments (added 2026-09-21)
+
+Four features that make it a lab rather than a scorecard, each with core +
+API + UI + tests:
+
+- **Slices** (`compare().slices`, scorecard table): movement grouped by planted
+  edge-case tag. The v1→v2 MISSING_FIELD slice nets +5 (7 gains, 2 losses) —
+  the release looked good on averages *within the very slice that regressed*.
+- **Calibration** (`calibration()`, both suite payloads, scorecard bars):
+  reported confidence vs. empirical accuracy. v2's sub-0.6 band is exactly the
+  two back-filled inventions, 0/2.
+- **Fault drills** (`src/core/drills.js`, `/api/drills`, scorecard card):
+  single-field, blank-fill, and decoy-gains mutations against the candidate.
+  All three must come back `caught: true`; decoy-gains is the thesis,
+  executable.
+- **What-if** (`runWhatIf`, `/api/whatif`, scorecard form): hypothetical
+  guideline thresholds, actually re-run, never persisted. 400 on unknown or
+  out-of-range keys. Try ceiling $40M on v2 and watch PKT-002 flip.
+
+Mobile got a pass in the same change: cards become the scroll container under
+860px so ledger tables stay usable on phones. No browser here — the small-screen
+CSS is reasoned, not eyeballed; confirm on a real phone.
 
 ---
 
