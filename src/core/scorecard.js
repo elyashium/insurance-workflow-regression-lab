@@ -162,7 +162,8 @@ export function summarize(scored) {
       : 0,
     totalCostUsd: Math.round(cost * 1e6) / 1e6,
     meanCostUsd: scored.length ? Math.round((cost / scored.length) * 1e6) / 1e6 : 0,
-    costIsSimulated: true,
+    // Mixed suites (metered model runs beside estimates) are not simulated.
+    costIsSimulated: scored.every((s) => s.run.cost.simulated),
   };
 }
 
@@ -314,7 +315,7 @@ const CALIBRATION_BANDS = [
 ];
 
 /**
- * @param {{run: any, score: any}[]} scored
+ * @param {{score: any}[]} scored
  * @returns {{range: string, n: number, correct: number, accuracy: number | null}[]}
  */
 export function calibration(scored) {

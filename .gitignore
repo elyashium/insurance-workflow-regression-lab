@@ -1,3 +1,11 @@
+# Local secrets — never commit keys. The Groq adapter reads GROQ_API_KEY from
+# the environment (or a local .env file, same format).
+.env
+
+# Model response cache: live Groq calls, machine-local. Seeding the cache makes
+# replays deterministic and offline; it differs between clones by design.
+data/.llm-cache/
+
 # Dependencies (there are none at runtime, but npx/tsc leave these behind)
 node_modules/
 

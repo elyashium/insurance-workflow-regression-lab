@@ -307,8 +307,9 @@ test('every value the extractor reports is either evidenced or explained', () =>
       const rows = [...e.locations, ...e.losses];
 
       for (const row of rows) {
+        const rowId = 'locId' in row ? row.locId : row.lossId;
         for (const [name, f] of Object.entries(row.fields)) {
-          const where = `${packet.packetId}/${profile.id}/${row.locId ?? row.lossId}.${name}`;
+          const where = `${packet.packetId}/${profile.id}/${rowId}.${name}`;
           if (f.value != null) {
             assert.ok(f.evidence, `${where} has a value but no evidence span`);
             assert.equal(typeof f.evidence.line, 'number', `${where} evidence has no line`);

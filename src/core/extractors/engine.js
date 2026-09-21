@@ -23,6 +23,21 @@ import {
   totalIncurred,
   estimateTokens,
 } from './shared.js';
+import { llmExtract } from './v3-llm.js';
+
+/**
+ * Async entry: deterministic profiles run the sync traversal, model-backed
+ * profiles delegate the read step to the model adapter. The result shape is
+ * identical either way — downstream cannot tell who did the reading.
+ *
+ * @param {import('../packets.js').Packet} packet
+ * @param {any} profile
+ * @returns {Promise<import('../types.js').ExtractionResult>}
+ */
+export function runExtractionAsync(packet, profile) {
+  if (profile.engine === 'llm') return llmExtract(packet, profile);
+  return Promise.resolve(runExtraction(packet, profile));
+}
 
 /**
  * Construction classes the context back-fill will guess at, most specific
@@ -329,11 +344,22 @@ function findConstructionNear(email, token) {
 /**
  * Run an extraction profile over a packet.
  *
+ * Stays synchronous for deterministic profiles so the unit tests and the
+ * rule-based versions never pay for async machinery. Model-backed profiles
+ * (`profile.engine === 'llm'`) go through `runExtractionAsync` instead — one
+ * engine, one dispatch branch, and the pipeline downstream cannot tell which
+ * kind of profile produced the result.
+ *
  * @param {import('../packets.js').Packet} packet
  * @param {any} profile
  * @returns {import('../types.js').ExtractionResult}
  */
 export function runExtraction(packet, profile) {
+  if (profile.engine === 'llm') {
+    throw new Error(
+      `Profile "${profile.id}" is model-backed: use runExtractionAsync (the runner does).`,
+    );
+  }
   const parseCurrency = profile.currency === 'strict' ? parseStrictCurrency : parseLooseCurrency;
 
   const inScope = packet.documents.filter((d) => profile.documents.includes(d.docId));

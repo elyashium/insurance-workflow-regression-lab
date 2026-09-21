@@ -39,15 +39,15 @@ test('no overrides moves nothing', async () => {
 test('unknown keys and out-of-range values fail with a 400', async () => {
   await assert.rejects(
     () => runWhatIf('v2-heuristic', { bogus: 1 }),
-    (err) => err.status === 400,
+    (/** @type {any} */ err) => err.status === 400,
   );
   await assert.rejects(
     () => runWhatIf('v2-heuristic', { tivCeiling: -5 }),
-    (err) => err.status === 400,
+    (/** @type {any} */ err) => err.status === 400,
   );
   await assert.rejects(
     () => runWhatIf('v2-heuristic', { maxMonthsAhead: 999 }),
-    (err) => err.status === 400,
+    (/** @type {any} */ err) => err.status === 400,
   );
   await assert.rejects(() => runWhatIf('v3-imaginary', {}), /Unknown workflow version/);
 });

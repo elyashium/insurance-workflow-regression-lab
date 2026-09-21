@@ -87,7 +87,8 @@ function makeRun(spec = {}) {
 
   /** @type {Record<string, any>} */
   const fields = {};
-  for (const [name, spec_] of Object.entries(scalars)) {
+  for (const [name, raw] of Object.entries(scalars)) {
+    const spec_ = /** @type {any} */ (raw);
     if (spec_ === OMITTED) continue;
     fields[name] =
       spec_ !== null && typeof spec_ === 'object' && 'value' in spec_

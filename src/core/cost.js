@@ -35,7 +35,8 @@ const CHARS_PER_TOKEN = 4;
  * @property {number} usd
  * @property {number} passes
  * @property {string[]} documentsRead
- * @property {boolean} simulated  always true, so the UI cannot forget to say so
+ * @property {boolean} simulated  always true for estimates, false for metered calls
+ * @property {string | null} model  the metered model, or null for estimates
  */
 
 /**
@@ -59,6 +60,7 @@ export function estimateCost(extraction) {
     passes,
     documentsRead: extraction.documentsRead,
     simulated: true,
+    model: null,
   };
 }
 

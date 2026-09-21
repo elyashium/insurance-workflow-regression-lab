@@ -14,7 +14,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { runExtraction } from './extractors/engine.js';
+import { runExtractionAsync } from './extractors/engine.js';
 import { resolve, computedTivField } from './resolve.js';
 import { runChecks } from './checks.js';
 import { findConflicts } from './conflicts.js';
@@ -37,7 +37,7 @@ import { estimateCost } from './cost.js';
  * @param {import('./versions.js').WorkflowVersion} version
  * @returns {any} the Run record
  */
-export function runPacket(packet, version) {
+export async function runPacket(packet, version) {
   /** @type {TraceStep[]} */
   const trace = [];
   const runStart = performance.now();
@@ -47,14 +47,14 @@ export function runPacket(packet, version) {
    *
    * @template T
    * @param {string} name
-   * @param {() => T} fn
+   * @param {() => T | Promise<T>} fn
    * @param {(result: T) => { summary: string, detail: string[] }} describe
-   * @returns {T}
+   * @returns {Promise<T>}
    */
-  function step(name, fn, describe) {
+  async function step(name, fn, describe) {
     const startMs = performance.now() - runStart;
     const began = performance.now();
-    const result = fn();
+    const result = await fn();
     const durationMs = performance.now() - began;
     const { summary, detail } = describe(result);
     trace.push({
@@ -67,9 +67,9 @@ export function runPacket(packet, version) {
     return result;
   }
 
-  const extraction = step(
+  const extraction = await step(
     'Extract',
-    () => runExtraction(packet, version.extractorProfile),
+    () => runExtractionAsync(packet, version.extractorProfile),
     (r) => ({
       summary: `Read ${r.documentsRead.length} document(s), ${r.locations.length} location row(s), ${r.losses.length} claim row(s).`,
       detail: [
@@ -82,7 +82,7 @@ export function runPacket(packet, version) {
     }),
   );
 
-  const resolution = step(
+  const resolution = await step(
     'Reconcile',
     () => resolve(extraction, version),
     (r) => ({
@@ -110,7 +110,7 @@ export function runPacket(packet, version) {
     guidelines: version.guidelines,
   };
 
-  const checks = step(
+  const checks = await step(
     'Apply guidelines',
     () => runChecks(ctx),
     (r) => ({
@@ -119,7 +119,7 @@ export function runPacket(packet, version) {
     }),
   );
 
-  const conflicts = step(
+  const conflicts = await step(
     'Detect conflicts',
     () => findConflicts(ctx),
     (r) => ({
@@ -130,7 +130,7 @@ export function runPacket(packet, version) {
     }),
   );
 
-  const routing = step(
+  const routing = await step(
     'Route',
     () => route(ctx, checks, conflicts),
     (r) => ({
@@ -146,7 +146,9 @@ export function runPacket(packet, version) {
     }),
   );
 
-  const cost = estimateCost(extraction);
+  // A metered extractor reports its own cost; estimates are the fallback.
+  // Either way the run carries exactly one cost figure, labelled honestly.
+  const cost = extraction.cost ?? estimateCost(extraction);
   const durationMs = round(performance.now() - runStart);
 
   return {

@@ -25,14 +25,16 @@ export async function runSuite(versionId, preloaded = {}) {
   const groundTruth = preloaded.groundTruth ?? (await loadGroundTruth());
   const packets = preloaded.packets ?? (await loadAllPackets());
 
-  const scored = packets.map((packet) => {
-    const run = runPacket(packet, version);
-    const truth = groundTruth[packet.packetId];
-    if (!truth) {
-      throw new Error(`No ground truth entry for ${packet.packetId}.`);
-    }
-    return { run, score: scoreRun(run, truth) };
-  });
+  const scored = await Promise.all(
+    packets.map(async (packet) => {
+      const run = await runPacket(packet, version);
+      const truth = groundTruth[packet.packetId];
+      if (!truth) {
+        throw new Error(`No ground truth entry for ${packet.packetId}.`);
+      }
+      return { run, score: scoreRun(run, truth) };
+    }),
+  );
 
   return {
     versionId,
@@ -88,9 +90,12 @@ const WHATIF_LIMITS = {
 /**
  * @param {any} value
  * @param {string} name
+ * @returns {Error}
  */
 function badWhatIf(value, name) {
-  const err = new Error(`Invalid what-if override ${name}: ${JSON.stringify(value)}.`);
+  const err = /** @type {Error & {status?: number}} */ (
+    new Error(`Invalid what-if override ${name}: ${JSON.stringify(value)}.`)
+  );
   err.status = 400;
   return err;
 }
@@ -127,8 +132,10 @@ export async function runWhatIf(versionId, overrides = {}) {
   };
 
   // Fresh corpus copies: the runner annotates as it reconciles.
-  const baseRuns = (await loadAllPackets()).map((p) => runPacket(p, version));
-  const hypoRuns = (await loadAllPackets()).map((p) => runPacket(p, hypothetical));
+  const [baseRuns, hypoRuns] = await Promise.all([
+    Promise.all((await loadAllPackets()).map((p) => runPacket(p, version))),
+    Promise.all((await loadAllPackets()).map((p) => runPacket(p, hypothetical))),
+  ]);
 
   /** @param {any} run */
   const row = (run) => ({

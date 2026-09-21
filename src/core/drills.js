@@ -24,6 +24,7 @@ import { compare } from './scorecard.js';
 
 /**
  * @param {{run: any, score: any}[]} scored
+ * @param {(field: any) => boolean} [want]  extra target filter (blank-fill)
  * @returns {{packetId: string, field: any} | null} first correct field in order
  */
 function firstCorrect(scored, want = () => true) {

@@ -63,6 +63,7 @@
  * @property {number} inputChars
  * @property {number} passes
  * @property {number} outputTokensEstimate
+ * @property {import('./cost.js').CostEstimate | null} [cost]  metered cost, when the extractor paid for the call
  */
 
 /**

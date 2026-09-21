@@ -16,13 +16,35 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { runSuite, runComparison } from '../src/core/lab.js';
 import { compare } from '../src/core/scorecard.js';
 import { GUIDELINE_DISCLAIMER } from '../src/core/checks.js';
 import { VERSIONS } from '../src/core/versions.js';
 
-const VERSION_IDS = ['v1-regex', 'v2-heuristic', 'v2.1-no-backfill'];
+const DETERMINISTIC_IDS = ['v1-regex', 'v2-heuristic', 'v2.1-no-backfill'];
+const VERSION_IDS = [...DETERMINISTIC_IDS];
+
+/**
+ * v3 needs a model. It runs live with GROQ_API_KEY, or deterministically
+ * offline against a seeded response cache (the adapter checks the cache
+ * before the key). Either way the registration below is unconditional.
+ */
+function v3Available() {
+  if (process.env.GROQ_API_KEY) return true;
+  const dir = process.env.GROQ_CACHE_DIR
+    ?? join(dirname(fileURLToPath(import.meta.url)), '..', 'data', '.llm-cache');
+  try {
+    return readdirSync(dir).some((f) => f.endsWith('.json'));
+  } catch {
+    return false;
+  }
+}
+
+if (v3Available()) VERSION_IDS.push('v3-llm');
 
 /** Each suite loads its own copy of the corpus, so no version can see another's annotations. */
 const suites = new Map();
@@ -110,7 +132,14 @@ function packetDiff(diff, packetId) {
  * ------------------------------------------------------------------ */
 
 test('every declared version runs the whole corpus', () => {
-  assert.deepEqual(VERSIONS.map((v) => v.id), VERSION_IDS);
+  assert.deepEqual(
+    VERSIONS.map((v) => v.id).filter((id) => VERSION_IDS.includes(id)),
+    VERSION_IDS,
+  );
+  assert.ok(
+    VERSIONS.some((v) => v.id === 'v3-llm'),
+    'v3-llm must stay registered even with no key and no cache',
+  );
   for (const id of VERSION_IDS) {
     assert.equal(suite(id).scored.length, 8, `${id} did not run all eight packets`);
     assert.equal(suite(id).summary.packets, 8);
@@ -177,11 +206,10 @@ test('routing is internally consistent on every run', () => {
   }
 });
 
-test('the cost on every run is labelled simulated', () => {
-  // Both extractors are local deterministic code and really cost nothing. The
-  // figure is a model of what an LLM-backed version would spend, and nothing
-  // in the pipeline is allowed to present it as measured.
-  for (const id of VERSION_IDS) {
+test('the cost on every deterministic run is labelled simulated', () => {
+  // Both rule-based extractors are local code and really cost nothing. v3 is
+  // metered and asserts the opposite in its own block below.
+  for (const id of DETERMINISTIC_IDS) {
     assert.equal(suite(id).summary.costIsSimulated, true);
     for (const { run } of suite(id).scored) {
       assert.equal(run.cost.simulated, true);
@@ -487,6 +515,34 @@ test('runComparison agrees with the scorecard these tests assert against', async
 test('an unknown version id fails loudly rather than silently scoring nothing', async () => {
   await assert.rejects(() => runSuite('v3-imaginary'), /Unknown workflow version/);
 });
+
+test(
+  'v3 runs the corpus with metered cost when a model is reachable',
+  { skip: !v3Available() },
+  () => {
+    const s = suite('v3-llm');
+    assert.equal(s.scored.length, 8);
+    assert.equal(s.summary.costIsSimulated, false);
+
+    for (const { run } of s.scored) {
+      assert.equal(run.cost.simulated, false, 'model spend must never wear the simulated label');
+      assert.ok(typeof run.cost.model === 'string' && run.cost.model.length > 0);
+      assert.ok(run.cost.usd >= 0);
+      assert.ok(run.cost.inputTokens > 0, 'a model run that read nothing is a bug');
+      // Every value the model produced, including nulls, carries the method
+      // that produced it. computedTiv is derived downstream, not extracted.
+      for (const [name, f] of Object.entries(run.fields)) {
+        if (name === 'computedTiv') continue;
+        assert.equal(f.method, 'llm-extract');
+      }
+      for (const loc of run.resolution.locations) {
+        for (const f of Object.values(loc.fields)) {
+          assert.equal(f.method, 'llm-extract');
+        }
+      }
+    }
+  },
+);
 
 test('the v1→v2 movement slices to the missing-field family', () => {
   const diff = diffOf('v1-regex', 'v2-heuristic');
