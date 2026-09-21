@@ -35,7 +35,7 @@ import { estimateCost } from './cost.js';
  *
  * @param {import('./packets.js').Packet} packet
  * @param {import('./versions.js').WorkflowVersion} version
- * @returns {any} the Run record
+ * @returns {Promise<any>} the Run record
  */
 export async function runPacket(packet, version) {
   /** @type {TraceStep[]} */

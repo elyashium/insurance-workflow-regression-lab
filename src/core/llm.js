@@ -40,7 +40,52 @@ export const MODEL_RATES = {
 
 const MAX_TOKENS = 4096;
 const TIMEOUT_MS = 90_000;
-const RETRIES = 2;
+const RETRIES = 3;
+
+/**
+ * At most this many live calls in flight. The free tier meters tokens per
+ * minute, so unbounded concurrency turns one suite into a 429 storm that
+ * retries then amplify. Cache hits never take a slot.
+ */
+function maxConcurrent() {
+  const n = Number(process.env.GROQ_CONCURRENCY ?? 2);
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 2;
+}
+
+let inFlight = 0;
+/** @type {(() => void)[]} */
+const waiters = [];
+
+/** @returns {Promise<() => void>} release function for one network slot */
+async function acquireSlot() {
+  while (inFlight >= maxConcurrent()) {
+    await new Promise((/** @type {(v: void) => void} */ resolve) => waiters.push(resolve));
+  }
+  inFlight++;
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    inFlight--;
+    waiters.shift()?.();
+  };
+}
+
+/**
+ * How long to wait before retrying: the server's Retry-After first, else a
+ * backoff measured in seconds — TPM limits ask for patience, not milliseconds.
+ *
+ * @param {number} attempt
+ * @param {Response | null} res
+ * @param {any} data
+ */
+function retryDelayMs(attempt, res, data) {
+  const header = Number(res?.headers?.get?.('retry-after'));
+  if (Number.isFinite(header) && header >= 0) return header * 1000;
+  const m = /try again in ([\d.]+)s/.exec(data?.error?.message ?? '');
+  if (m) return Math.ceil(Number(m[1]) * 1000);
+  return 4000 * 2 ** attempt;
+}
 
 let envLoaded = false;
 
@@ -160,20 +205,35 @@ export async function complete(model, messages, opts = {}) {
   });
 
   let lastErr = null;
-  for (let attempt = 0; attempt <= RETRIES; attempt++) {
-    try {
-      const res = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body,
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-      });
-      const data = await res.json().catch(() => ({}));
+  const release = await acquireSlot();
+  try {
+    for (let attempt = 0; attempt <= RETRIES; attempt++) {
+      let res = null;
+      let data = {};
+      try {
+        res = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body,
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        });
+        data = await res.json().catch(() => ({}));
+      } catch (err) {
+        lastErr = err;
+        if (attempt < RETRIES) {
+          await sleep(retryDelayMs(attempt, null, {}));
+          continue;
+        }
+        if (err?.name === 'TimeoutError' || err?.name === 'AbortError') {
+          throw new Error(`Groq request timed out after ${TIMEOUT_MS}ms`);
+        }
+        throw err instanceof Error ? err : new Error(String(err));
+      }
       if (!res.ok) {
         const retryable = res.status === 429 || res.status >= 500;
         lastErr = new Error(`Groq ${res.status}: ${data?.error?.message ?? 'request failed'}`);
         if (retryable && attempt < RETRIES) {
-          await sleep(1000 * 2 ** attempt);
+          await sleep(retryDelayMs(attempt, res, data));
           continue;
         }
         throw lastErr;
@@ -187,16 +247,9 @@ export async function complete(model, messages, opts = {}) {
       const out = { content, usage, model, cached: false };
       await writeCache(key, out);
       return out;
-    } catch (err) {
-      if (err?.name === 'TimeoutError' || err?.name === 'AbortError') {
-        lastErr = new Error(`Groq request timed out after ${TIMEOUT_MS}ms`);
-        if (attempt < RETRIES) {
-          await sleep(1000 * 2 ** attempt);
-          continue;
-        }
-      }
-      throw err instanceof Error ? err : new Error(String(err));
     }
+  } finally {
+    release();
   }
   throw lastErr ?? new Error('Groq request failed without a recorded error.');
 }
