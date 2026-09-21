@@ -55,11 +55,12 @@
   --plum: #7a4a6e;
 
   /* Fonts.
-     Display face is provisional (see the embed <link> in index.html): if the
-     "Zephyr Regular" webfont fails to load, headings fall back to Newsreader.
-     Body is Violet Sans (single weight — heavier weights synthesize). */
-  --display: "Zephyr Regular", "Newsreader", Georgia, serif;
-  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+     Display stand-in for Typelab's Zephyr (archived 2021, unlicensable — no
+     webfont exists): Bodoni Moda, same high-contrast Didone spirit, always set
+     in caps to honour Zephyr's uppercase-only constraint. One-line swap if the
+     real face is ever licensed. Body is Violet Sans (single weight). */
+  --display: "Bodoni Moda", Georgia, "Times New Roman", serif;
+  --serif: Georgia, "Times New Roman", serif;
   --sans: "Violet Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
 
@@ -105,8 +106,9 @@ h1, h2, h3, h4 {
   color: var(--ink);
   font-family: var(--display);
   font-weight: 500;
-  letter-spacing: 0;
-  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: 0.015em;
+  line-height: 1.12;
 }
 
 code, .mono {
@@ -154,10 +156,10 @@ code, .mono {
 }
 
 .sidebar h1 {
-  font-family: var(--sans);
-  font-size: 13.5px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .brand-sub {
@@ -616,6 +618,7 @@ button[disabled] {
 
 .verdict-title {
   font-family: var(--display);
+  text-transform: uppercase;
   font-size: 21px;
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -1222,32 +1225,91 @@ details.changes ul {
    ========================================================================== */
 
 .welcome {
-  max-width: 620px;
-  margin: 56px auto;
+  max-width: 720px;
+  margin: 48px auto;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 38px 42px;
+  padding: 42px 46px;
   box-shadow: var(--shadow-card);
 }
 
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--green-deep);
+  margin-bottom: 10px;
+}
+
 .welcome h2 {
-  font-size: 35px;
-  margin-bottom: 8px;
+  font-size: 40px;
+  max-width: 16ch;
+  margin-bottom: 12px;
 }
 
 .welcome p {
-  margin: 0 0 18px;
+  margin: 0 0 22px;
   color: var(--ink-soft);
-  font-size: 14px;
-  max-width: 48ch;
+  font-size: 14.5px;
+  max-width: 56ch;
 }
 
-.welcome .version-chips {
+.welcome-actions {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+}
+
+.welcome-link {
+  font-size: 13.5px;
+  font-weight: 550;
+  text-decoration: none;
+  border-bottom: 1px solid var(--green-border);
+}
+.welcome-link:hover {
+  border-color: var(--green-deep);
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+@media (max-width: 640px) {
+  .how-grid { grid-template-columns: 1fr; }
+}
+
+.how-card {
+  background: var(--inset);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.how-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--green-deep);
+  margin-bottom: 6px;
+}
+
+.how-card h4 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.how-card p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
 }
 
 .btn-big {

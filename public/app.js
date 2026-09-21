@@ -320,15 +320,34 @@ function versionSelect(selected, name) {
 
 function renderWelcome() {
   const crumb = document.getElementById('crumb-view');
-  if (crumb) crumb.textContent = 'Load data';
-  const versions = state.meta?.versions ?? [];
+  if (crumb) crumb.textContent = 'Overview';
   return render(`
     <div class="welcome">
-      <h2>Replay a workflow change.</h2>
-      <p>The submission corpus, run through every workflow version and diffed field by field — so a better average can't hide a regression.</p>
-      <div class="version-chips">${versions.map((v) => `<span class="badge edge">${esc(v.name)}</span>`).join('')}</div>
-      <button class="primary btn-big" data-action="load">Load evaluation data</button>
-      <div class="welcome-note">Runs locally in milliseconds. Cost figures are simulated.</div>
+      <div class="eyebrow">Regression lab</div>
+      <h2>Ship workflow changes without silent regressions.</h2>
+      <p>Replays the submission corpus through two workflow versions and diffs the runs field by field. A better average never buys back a field that used to be right.</p>
+      <div class="welcome-actions">
+        <button class="primary btn-big" data-action="load">Load evaluation data</button>
+        <a class="welcome-link" href="#/about">How it works</a>
+      </div>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-num">01</div>
+          <h4>Replay</h4>
+          <p>Same packets, two versions. Every value cites its source.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">02</div>
+          <h4>Diff</h4>
+          <p>Blank means absent — inventing a value scores wrong.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">03</div>
+          <h4>Gate</h4>
+          <p>One lost field blocks the release. No exceptions.</p>
+        </div>
+      </div>
+      <div class="welcome-note">Synthetic submissions &middot; Simulated cost &middot; Runs locally in milliseconds.</div>
     </div>
   `);
 }
@@ -1032,6 +1051,33 @@ function renderAbout() {
           <span class="reason-kind">Synthetic Test Lab</span>
           <strong>Safe Demonstration Data</strong><br />
           All submissions, insured entities, loss histories, and rule thresholds are synthetic test assets.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Where This Goes</h3>
+      <p class="card-note">The harness is the product surface. Each step below slots in without changing the scorecard.</p>
+      <div class="grid-2" style="margin-top:14px">
+        <div class="reason">
+          <span class="reason-kind">Step 01 — Real corpus</span>
+          <strong>Swap synthetic packets for labelled production documents.</strong><br />
+          The diff, the null scoring, and the gate carry over unchanged. Labelling is the real work — budget for it first.
+        </div>
+        <div class="reason">
+          <span class="reason-kind">Step 02 — Model profile</span>
+          <strong>Add a model-backed extractor as a fourth version.</strong><br />
+          Versions are config, so the new profile diffs against the old ones on day one — including its invented-value rate.
+        </div>
+        <div class="reason">
+          <span class="reason-kind">Step 03 — CI gate</span>
+          <strong>Run the diff on every prompt, model, or rule change.</strong><br />
+          A change that loses a previously correct field fails the build. That is the whole release policy.
+        </div>
+        <div class="reason">
+          <span class="reason-kind">Step 04 — Close the loop</span>
+          <strong>Feed reviewer overrides back into the guidelines.</strong><br />
+          A rule overturned five times is a wrong rule. The review log already records the evidence.
         </div>
       </div>
     </div>
