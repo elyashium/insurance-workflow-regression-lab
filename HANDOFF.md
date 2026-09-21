@@ -369,6 +369,17 @@ API shape it consumes (verified by reading `scorecard.js`, `runner.js`,
 `types.js`, `packets.js`), but that is not the same as working. **Do this
 first.**
 
+Update 2026-09-21: still no interactive browser available in this environment,
+but the next-best verification is done — server started, all 8 routes
+(`meta`, `packets`, `packets/:id` via runs view, `suites/:v`, `runs/:v/:p`,
+`compare`, `review-queue/:v`, `reviews`, `/`) return 200, `node --check`
+passes on `app.js`, and every field the frontend reads was traced to the
+server shape that provides it (span `{docId, docName, line, start, end}` =
+`makeSpan`; `cost.passes`/`PRICING.label`; `doc.label` from `packets.js`;
+`packetSide.versionId`; review-queue `flags`/`lowConfidence`/`reasons`). All
+CSS classes referenced exist in `styles.css`. No breaks found; first real
+click-through should still be a human with a browser.
+
 **`.claude/launch.json` is missing.** `.gitignore` already has the
 `!.claude/launch.json` negation ready for it. Contents:
 
@@ -381,10 +392,28 @@ first.**
 }
 ```
 
+Update 2026-09-21: **added.** `.claude/launch.json` now exists with exactly
+these contents.
+
 **`npm run typecheck` fetches from the network.** It shells out to
 `npx -y -p typescript@5 -p @types/node@22 tsc --noEmit` rather than adding a
 devDependency, to preserve the zero-dependency property. `strict` is off — the
 source is plain JS with JSDoc annotations, not TypeScript.
+
+Update 2026-09-21: typecheck was red and is still red, but for a smaller
+reason. Fixed since: real JSDoc drift in `src/` and `public/` — `CheckResult`
+was missing `disclaimer` (9 errors), `Resolution` was missing
+`unreadableSummands`, `SourceDoc` was missing `label`, `LocationRecord`
+declared `isDuplicateOf: boolean` while the code assigns a locId string,
+`engine.js` had a wrong type-import path (`../core/packets.js`), and `app.js`
+had a mistagged `@param`. All comment/typedef-only, zero runtime effect, tests
+still 170/170. What remains is (a) ~50 `Cannot find module 'node:*'` /
+`process` / `Buffer` errors — the script as written can never resolve
+`@types/node`, because `tsc` only searches ancestor `node_modules/@types`
+dirs, not the npx cache, and the repo has no local `node_modules` by design;
+and (b) 5 test-file-only narrowing gripes (`extractors.test.js:311`,
+`scorecard.test.js:91-94`). Fixing (a) properly needs either a local install
+(breaks the zero-dep property) or script surgery; left as-is deliberately.
 
 **Eight packets is a demo, not an eval set.** Enough to plant five edge cases and
 prove a mechanism; nowhere near enough to measure anything.
