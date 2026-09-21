@@ -487,3 +487,58 @@ test('runComparison agrees with the scorecard these tests assert against', async
 test('an unknown version id fails loudly rather than silently scoring nothing', async () => {
   await assert.rejects(() => runSuite('v3-imaginary'), /Unknown workflow version/);
 });
+
+test('the v1→v2 movement slices to the missing-field family', () => {
+  const diff = diffOf('v1-regex', 'v2-heuristic');
+  const bySlice = new Map(diff.slices.map((s) => [s.slice, s]));
+
+  const missing = bySlice.get('MISSING_FIELD');
+  assert.ok(missing, 'expected a MISSING_FIELD slice');
+  // Two packets carry the tag: PKT-002 contributes the 2 regressions,
+  // PKT-008 contributes 7 improvements. The slice nets +5 — which is exactly
+  // why the release looked shippable on averages while carrying regressions.
+  assert.equal(missing.packets, 2);
+  assert.equal(missing.regressions, 2);
+  assert.equal(missing.improvements, 7);
+  assert.equal(missing.net, 5);
+
+  for (const s of diff.slices) {
+    if (s.slice === 'MISSING_FIELD') continue;
+    assert.equal(s.regressions, 0, `${s.slice} should carry no regression`);
+  }
+});
+
+test('the v2→v2.1 fix moves only the missing-field slice, upward', () => {
+  const fix = diffOf('v2-heuristic', 'v2.1-no-backfill');
+
+  assert.deepEqual(fix.regressions, []);
+  assert.equal(fix.slices.length, 1);
+  assert.equal(fix.slices[0].slice, 'MISSING_FIELD');
+  assert.equal(fix.slices[0].improvements, 2);
+  assert.equal(fix.slices[0].net, 2);
+});
+
+test('calibration buckets account for every scored field, and the diagonal holds', () => {
+  for (const id of VERSION_IDS) {
+    const cal = suite(id).calibration;
+    assert.deepEqual(
+      cal.map((b) => b.range),
+      ['<0.6', '0.6–0.8', '0.8–0.9', '≥0.9'],
+    );
+    assert.equal(
+      cal.reduce((sum, b) => sum + b.n, 0),
+      suite(id).summary.total,
+      `${id} left fields out of its calibration`,
+    );
+    assert.ok(
+      cal[0].accuracy < cal[3].accuracy,
+      `${id} claims more for its guesses than its reads`,
+    );
+  }
+
+  // v2's only low-confidence fields are the two back-filled inventions, both
+  // wrong at 0.50 — the calibration pins the demo's central claim numerically.
+  const v2low = suite('v2-heuristic').calibration[0];
+  assert.deepEqual({ n: v2low.n, correct: v2low.correct }, { n: 2, correct: 0 });
+  assert.equal(suite('v2-heuristic').calibration[3].accuracy, 1);
+});

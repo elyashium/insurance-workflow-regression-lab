@@ -26,6 +26,7 @@ Zero-dependency Node lab (ESM, `node:http`, no framework). Everything is synthet
 - Review queue (`GET /api/review-queue/:versionId`) must never include ground truth or accuracy — reviewer gets documents + machine reasoning only. Scorecard views may.
 - Reviews are append-only; latest entry per (versionId, packetId) wins. `versionId` is required, `needs-info` requires a `note`; violations throw `BadReview` (400). Writes are atomic (tmp + rename) and serialised via `writeQueue`.
 - Location scoring matches by normalised address, not position; `locationCount` is its own scored item (see `scorecard.js` before touching dedup logic).
+- Lab instruments live next to the scorecard: per-edge-case slices (in `compare()` output), confidence calibration (`calibration()` in `scorecard.js`, bands aligned to the 0.6 floor / 0.50 back-fill), fault drills (`src/core/drills.js` — sabotage the candidate, assert the gate fires), what-if reruns (`runWhatIf` in `lab.js` — hypothetical thresholds, never persisted, 400 on unknown/out-of-range keys).
 - Low-confidence floor is `0.6` (server + runner surface these); back-fill emits `0.50`.
 - Every guideline check (`GL-001`…`GL-005`) must carry `GUIDELINE_DISCLAIMER` and a non-empty `detail`. Thresholds are invented — never describe them as underwriting guidance, never compare against real products, never reproduce ACORD text.
 

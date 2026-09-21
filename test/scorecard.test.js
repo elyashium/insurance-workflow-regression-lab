@@ -18,7 +18,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { valuesEqual, scoreRun, summarize, compare } from '../src/core/scorecard.js';
+import { valuesEqual, scoreRun, summarize, compare, calibration } from '../src/core/scorecard.js';
 import { SCALAR_FIELDS, LOCATION_FIELDS } from '../src/core/types.js';
 import { makeField, makeLocation } from './fixtures.js';
 
@@ -475,3 +475,26 @@ function rowsWith(locId, overrides) {
     return row.locId === locId ? { ...row, ...overrides } : row;
   });
 }
+
+test('calibration buckets reported confidence against empirical accuracy', () => {
+  const scored = [
+    {
+      score: {
+        fields: [
+          { confidence: 0.5, correct: false },
+          { confidence: 0.2, correct: false },
+          { confidence: 0.7, correct: true },
+          { confidence: 0.95, correct: true },
+          { confidence: 0.96, correct: true },
+        ],
+      },
+    },
+  ];
+
+  assert.deepEqual(calibration(scored), [
+    { range: '<0.6', n: 2, correct: 0, accuracy: 0 },
+    { range: '0.6–0.8', n: 1, correct: 1, accuracy: 1 },
+    { range: '0.8–0.9', n: 0, correct: 0, accuracy: null },
+    { range: '≥0.9', n: 2, correct: 2, accuracy: 1 },
+  ]);
+});

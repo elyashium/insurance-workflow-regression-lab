@@ -320,6 +320,8 @@ value renders identically to a read one — unless you show the method.
 | `GET /api/suites/:versionId` | whole corpus replayed through one version |
 | `GET /api/runs/:versionId/:packetId` | one run: extraction, checks, trace, score |
 | `GET /api/compare?baseline=&candidate=` | the diff |
+| `GET /api/drills?baseline=&candidate=` | three fault drills against the gate (single-field, blank-fill, decoy-gains) |
+| `GET /api/whatif?version=&tivCeiling=&lossRatioCeilingPct=&maxMonthsAhead=` | re-run one version under hypothetical thresholds; nothing is saved |
 | `GET /api/review-queue/:versionId` | abstained packets, no answer key |
 | `GET /api/reviews[?packet=]` | the append-only log |
 | `POST /api/reviews` | record one decision |
